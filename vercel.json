@@ -1,11 +1,8 @@
 {
-  "version": 2,
-  "builds": [
-    { "src": "public/index.html", "use": "@vercel/static" },
-    { "src": "api/*.js", "use": "@vercel/node" }
-  ],
-  "routes": [
-    { "src": "/api/(.*)", "dest": "/api/$1" },
-    { "src": "/(.*)", "dest": "/public/index.html" }
+  "rewrites": [
+    { "source": "/api/odds", "destination": "/api/odds" },
+    { "source": "/api/football", "destination": "/api/football" },
+    { "source": "/api/deposito", "destination": "/api/deposito" },
+    { "source": "/(.*)", "destination": "/public/index.html" }
   ]
 }
