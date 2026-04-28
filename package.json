@@ -1,0 +1,12 @@
+{
+  "name": "onlybet",
+  "version": "1.0.0",
+  "description": "Only Bet — Casa de Apostas Angola",
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel --prod"
+  },
+  "devDependencies": {
+    "vercel": "^33.0.0"
+  }
+}
