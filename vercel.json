@@ -6,7 +6,12 @@
     { "src": "admin/index.html", "use": "@vercel/static" }
   ],
   "routes": [
-    { "src": "/api/(.*)", "dest": "/api/$1" },
+    { "src": "/api/admin(.*)", "dest": "/api/admin.js" },
+    { "src": "/api/auth(.*)", "dest": "/api/auth.js" },
+    { "src": "/api/transacoes(.*)", "dest": "/api/transacoes.js" },
+    { "src": "/api/football(.*)", "dest": "/api/football.js" },
+    { "src": "/api/odds(.*)", "dest": "/api/odds.js" },
+    { "src": "/api/deposito(.*)", "dest": "/api/deposito.js" },
     { "src": "/admin", "dest": "/admin/index.html" },
     { "src": "/admin/", "dest": "/admin/index.html" },
     { "src": "/(.*)", "dest": "/index.html" }
