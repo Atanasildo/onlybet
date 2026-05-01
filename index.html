@@ -608,8 +608,16 @@ let currentMethod = 'unitel';
 let allLive = [], allUpcoming = [];
 let currentDetailMatch = null;
 
-function getBal(){ return currentUser?(DB.get('bal_'+currentUser.id)||0):0; }
-function setBal(v){ if(currentUser) DB.set('bal_'+currentUser.id,v); }
+function getBal(){ return currentUser?(currentUser.saldo||DB.get('bal_'+currentUser.id)||0):0; }
+function setBal(v){ if(currentUser){ currentUser.saldo=v; DB.set('session',currentUser); DB.set('bal_'+currentUser.id,v); } }
+async function syncSaldo(){
+  if(!currentUser) return;
+  try{
+    const r=await fetch(`/api/auth?action=perfil&id=${currentUser.id}`);
+    const d=await r.json();
+    if(d.saldo!==undefined){ currentUser.saldo=parseFloat(d.saldo); DB.set('session',currentUser); updateUI(); }
+  }catch(e){}
+}
 function getStats(){ return DB.get('st_'+currentUser?.id)||{g:0,a:0,n:0}; }
 function saveSt(s){ DB.set('st_'+currentUser?.id,s); }
 function getTx(){ return DB.get('tx_'+currentUser?.id)||[]; }
@@ -1015,7 +1023,7 @@ function calcPay(){
   document.getElementById('totOdd').textContent=tot.toFixed(2);
   document.getElementById('potPay').textContent=(tot*stake).toLocaleString('pt-AO')+' Kz';
 }
-function placeBet(){
+async function placeBet(){
   if(!currentUser){ openAuth('login'); return; }
   const stake=parseFloat(document.getElementById('stakeInp').value)||0;
   if(!betslip.length){ notify('Adiciona selecções ao boletim','err'); return; }
@@ -1023,14 +1031,16 @@ function placeBet(){
   if(stake>getBal()){ notify('Saldo insuficiente! Faz um depósito.','err'); return; }
   const tot=betslip.reduce((a,b)=>a*b.odd,1);
   const payout=stake*tot;
-  const win=Math.random()>0.45;
-  let bal=getBal()-stake;
-  if(win) bal+=payout;
-  setBal(bal);
-  const s=getStats(); s.a+=stake; s.n++; if(win) s.g+=payout; saveSt(s);
-  const bets=getBets(); bets.unshift({jogo:'⚽ Apostas Desportivas',det:`${betslip.length}x sel. · Odd ${tot.toFixed(2)}`,res:win?'Ganhou':'Perdeu',amt:win?(payout-stake):-stake,date:new Date().toLocaleDateString('pt-AO')}); saveBets(bets);
-  updateUI(); betslip=[]; renderBS(); document.getElementById('betslip').classList.remove('open');
-  notify(win?`🎉 Ganhou ${payout.toLocaleString('pt-AO')} Kz!`:'Sem sorte desta vez.',win?'ok':'err');
+  const jogo=betslip.map(b=>b.matchName).join(' + ');
+  const detalhe=betslip.map(b=>`${b.pick} @ ${b.odd.toFixed(2)}`).join(' · ');
+  try {
+    const r=await fetch('/api/transacoes?action=aposta',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:currentUser.id,jogo,detalhe,valor_apostado:stake,odd_total:tot.toFixed(2),ganho_potencial:payout,resultado:'pendente'})});
+    const d=await r.json();
+    if(!d.ok){ notify(d.error||'Erro ao registar aposta','err'); return; }
+    currentUser.saldo=d.saldo_novo; DB.set('session',currentUser);
+    updateUI(); betslip=[]; renderBS(); document.getElementById('betslip').classList.remove('open');
+    notify(`✅ Aposta de ${stake.toLocaleString('pt-AO')} Kz registada! Odd total: ${tot.toFixed(2)}`,'ok');
+  } catch(e){ notify('Erro de ligação. Tenta novamente.','err'); }
 }
 
 // ============================================================
@@ -1085,53 +1095,35 @@ async function submitDeposit(){
   const btn=document.getElementById('depSubmitBtn');
   btn.disabled=true; btn.textContent='A gerar referência...';
 
-  const ref='OB-'+Date.now().toString().slice(-7);
-  const contaDest=currentMethod==='unitel'?UNITEL_NUM:PAYPAY_NUM;
-  const metodoNome=currentMethod==='unitel'?'Unitel Money':'PayPay Angola';
+  try {
+    const r=await fetch('/api/transacoes?action=deposito',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:currentUser.id,valor:amt,metodo:currentMethod,telefone:phone})});
+    const d=await r.json();
+    if(!d.ok){ notify(d.error||'Erro ao gerar depósito','err'); btn.disabled=false; btn.textContent='Gerar Referência'; return; }
 
-  // Guardar pedido pendente localmente
-  const pendentes=DB.get('dep_pendentes_'+currentUser.id)||[];
-  pendentes.push({ref,amt,metodo:currentMethod,phone,contaDest,estado:'aguarda_transferencia',criadoEm:new Date().toISOString()});
-  DB.set('dep_pendentes_'+currentUser.id,pendentes);
-
-  // Mostrar instruções
-  document.getElementById('dep-ref').textContent=ref;
-  document.getElementById('dep-ref-show').textContent=ref;
-  document.getElementById('dep-metodo-nome').textContent=metodoNome;
-  document.getElementById('dep-valor-show').textContent=amt.toLocaleString('pt-AO')+' Kz';
-  document.getElementById('dep-conta-destino').textContent=contaDest;
-  document.getElementById('instrucoes-box').classList.add('show');
-
+    document.getElementById('dep-ref').textContent=d.ref;
+    document.getElementById('dep-ref-show').textContent=d.ref;
+    document.getElementById('dep-metodo-nome').textContent=d.metodo;
+    document.getElementById('dep-valor-show').textContent=amt.toLocaleString('pt-AO')+' Kz';
+    document.getElementById('dep-conta-destino').textContent=d.conta;
+    document.getElementById('instrucoes-box').classList.add('show');
+    notify(`Referência ${d.ref} gerada! Segue os passos.`,'ok');
+  } catch(e){ notify('Erro de ligação. Tenta novamente.','err'); }
   btn.disabled=false; btn.textContent='Gerar Nova Referência';
-  notify(`Referência ${ref} gerada! Segue os passos.`,'ok');
 }
 
-function confirmTransfer(){
+async function confirmTransfer(){
   if(!currentUser) return;
-  const pendentes=DB.get('dep_pendentes_'+currentUser.id)||[];
-  const ultimo=pendentes[pendentes.length-1];
-  if(!ultimo) return;
-  ultimo.estado='transferencia_feita';
-  DB.set('dep_pendentes_'+currentUser.id,pendentes);
-
-  // Para demo: creditar automaticamente após 3 segundos
-  // Em produção: admin aprova manualmente
-  notify('✅ Transferência registada! O saldo será creditado após confirmação.','ok');
-  setTimeout(()=>{
-    const amt=ultimo.amt;
-    const txs=getTx();
-    const isFirst=!txs.find(t=>t.tipo==='Depósito'&&t.estado==='Aprovado');
-    let total=amt;
-    let bonusTxt='';
-    if(isFirst&&amt<=50000){ total+=amt; bonusTxt=` + ${amt.toLocaleString('pt-AO')} Kz bónus 100%!`; }
-    setBal(getBal()+total);
-    txs.unshift({data:new Date().toLocaleDateString('pt-AO'),tipo:'Depósito',metodo:ultimo.metodo==='unitel'?'Unitel Money':'PayPay',valor:'+'+total.toLocaleString('pt-AO')+' Kz',estado:'Aprovado',ref:ultimo.ref});
-    saveTx(txs); updateUI();
-    notify(`💰 Saldo creditado: ${total.toLocaleString('pt-AO')} Kz${bonusTxt}`,'ok');
-  },3000);
+  const ref=document.getElementById('dep-ref').textContent;
+  if(!ref) return;
+  try {
+    const r=await fetch('/api/transacoes?action=confirmar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ref})});
+    const d=await r.json();
+    if(d.ok) notify('✅ Transferência registada! O admin irá verificar e creditar o saldo em breve.','ok');
+    else notify(d.error||'Erro ao confirmar','err');
+  } catch(e){ notify('Erro de ligação.','err'); }
 }
 
-function doWithdraw(){
+async function doWithdraw(){
   if(!currentUser){ openAuth('login'); return; }
   const amt=parseFloat(document.getElementById('wdAmt').value)||0;
   const phone=document.getElementById('wdPhone').value.trim();
@@ -1139,15 +1131,18 @@ function doWithdraw(){
   if(amt<1000){ notify('Mínimo: 1.000 Kz','err'); return; }
   if(!phone){ notify('Introduz o teu número','err'); return; }
   if(amt>getBal()){ notify('Saldo insuficiente','err'); return; }
-  setBal(getBal()-amt);
-  const txs=getTx();
-  txs.unshift({data:new Date().toLocaleDateString('pt-AO'),tipo:'Levantamento',metodo:method==='unitel'?'Unitel Money':'PayPay',valor:'-'+amt.toLocaleString('pt-AO')+' Kz',estado:'Pendente'});
-  saveTx(txs); updateUI();
-  document.getElementById('wd-metodo-show').textContent=method==='unitel'?'Unitel Money':'PayPay Angola';
-  document.getElementById('wd-phone-show').textContent=phone;
-  document.getElementById('wd-confirm-box').classList.add('show');
-  document.getElementById('wdBal').textContent=getBal().toLocaleString('pt-AO')+' Kz';
-  notify(`Levantamento de ${amt.toLocaleString('pt-AO')} Kz submetido! Aguarda o pedido.`,'ok');
+  try {
+    const r=await fetch('/api/transacoes?action=levantamento',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:currentUser.id,valor:amt,metodo:method,telefone:phone})});
+    const d=await r.json();
+    if(!d.ok){ notify(d.error||'Erro ao solicitar levantamento','err'); return; }
+    currentUser.saldo=getBal()-amt; DB.set('session',currentUser);
+    document.getElementById('wd-metodo-show').textContent=method==='unitel'?'Unitel Money':'PayPay Angola';
+    document.getElementById('wd-phone-show').textContent=phone;
+    document.getElementById('wd-confirm-box').classList.add('show');
+    document.getElementById('wdBal').textContent=getBal().toLocaleString('pt-AO')+' Kz';
+    updateUI();
+    notify(`Levantamento de ${amt.toLocaleString('pt-AO')} Kz submetido! Aguarda o pedido.`,'ok');
+  } catch(e){ notify('Erro de ligação. Tenta novamente.','err'); }
 }
 
 // ============================================================
@@ -1257,19 +1252,21 @@ function switchAuth(tab){
   document.getElementById('tLogin').classList.toggle('active',tab==='login');
   document.getElementById('tReg').classList.toggle('active',tab==='register');
 }
-function doLogin(){
+async function doLogin(){
   const u=document.getElementById('lUser').value.trim();
   const p=document.getElementById('lPass').value;
   if(!u||!p){ notify('Preenche todos os campos','err'); return; }
-  const users=DB.get('users')||[];
-  const found=users.find(x=>x.email===u||x.phone===u);
-  if(!found||found.pass!==btoa(p)){ notify('Credenciais inválidas','err'); return; }
-  currentUser={id:found.id,name:found.name,email:found.email};
-  DB.set('session',currentUser);
-  closeModal('authModal'); updateUI();
-  notify(`Bem-vindo de volta, ${found.name}! ✅`,'ok');
+  try {
+    const r=await fetch('/api/auth?action=login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({login:u,password:p})});
+    const d=await r.json();
+    if(!d.ok){ notify(d.error||'Credenciais inválidas','err'); return; }
+    currentUser={id:d.user.id,name:d.user.nome,email:d.user.email,saldo:d.user.saldo};
+    DB.set('session',currentUser);
+    closeModal('authModal'); updateUI();
+    notify(`Bem-vindo de volta, ${d.user.nome}! ✅`,'ok');
+  } catch(e){ notify('Erro de ligação. Tenta novamente.','err'); }
 }
-function doRegister(){
+async function doRegister(){
   const name=document.getElementById('rName').value.trim();
   const phone=document.getElementById('rPhone').value.trim();
   const email=document.getElementById('rEmail').value.trim();
@@ -1277,16 +1274,15 @@ function doRegister(){
   if(!name||!phone||!email||!pass){ notify('Preenche todos os campos','err'); return; }
   if(pass.length<8){ notify('Mínimo 8 caracteres na palavra-passe','err'); return; }
   if(!document.getElementById('terms').checked){ notify('Aceita os termos','err'); return; }
-  const users=DB.get('users')||[];
-  if(users.find(u=>u.email===email||u.phone===phone)){ notify('Email ou telefone já registado','err'); return; }
-  const id='u_'+Date.now();
-  users.push({id,name,phone,email,pass:btoa(pass)});
-  DB.set('users',users);
-  currentUser={id,name,email};
-  DB.set('session',currentUser);
-  setBal(0);
-  closeModal('authModal'); updateUI();
-  notify(`Conta criada! Bem-vindo, ${name}! 🎉`,'ok');
+  try {
+    const r=await fetch('/api/auth?action=registar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nome:name,email,telefone:phone,password:pass})});
+    const d=await r.json();
+    if(!d.ok){ notify(d.error||'Erro ao criar conta','err'); return; }
+    currentUser={id:d.user.id,name:d.user.nome,email:d.user.email,saldo:0};
+    DB.set('session',currentUser);
+    closeModal('authModal'); updateUI();
+    notify(`Conta criada! Bem-vindo, ${d.user.nome}! 🎉`,'ok');
+  } catch(e){ notify('Erro de ligação. Tenta novamente.','err'); }
 }
 function doLogout(){
   currentUser=null; DB.set('session',null); betslip=[]; renderBS(); updateUI();
@@ -1436,9 +1432,11 @@ function notify(msg,type='ok'){
 selMethod('unitel');
 renderHomeGames();
 updateUI();
-loadAllData(); // Carregar dados das APIs
+loadAllData();
+if(currentUser) syncSaldo();
 setInterval(()=>{
   if(document.getElementById('page-live').classList.contains('active')) loadAllData();
+  if(currentUser) syncSaldo();
 },60000);
 </script>
 </body>
