@@ -1,0 +1,13 @@
+{
+  "name": "onlybet",
+  "version": "2.0.0",
+  "description": "OnlyBet — Casa de Apostas Angola",
+  "engines": {
+    "node": "18.x"
+  },
+  "scripts": {
+    "dev": "node api/auth.js"
+  },
+  "license": "UNLICENSED",
+  "private": true
+}
