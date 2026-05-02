@@ -3,6 +3,7 @@
   "builds": [
     { "src": "api/*.js", "use": "@vercel/node" },
     { "src": "index.html", "use": "@vercel/static" },
+    { "src": "onlybet-patch.js", "use": "@vercel/static" },
     { "src": "admin/index.html", "use": "@vercel/static" }
   ],
   "routes": [
