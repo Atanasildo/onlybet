@@ -285,9 +285,113 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;font
 .api-txt{color:var(--muted);flex:1;}
 .refresh-btn{background:none;border:1px solid var(--border);border-radius:6px;padding:3px 9px;font-size:10px;color:var(--muted);cursor:pointer;font-family:'Barlow',sans-serif;}
 .refresh-btn:hover{border-color:var(--gold);color:var(--gold);}
+
+/* ============================================================ */
+/* MOBILE RESPONSIVO — Patch v2 */
+/* ============================================================ */
+@media (max-width: 768px) {
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
+    z-index: 200;
+    width: 240px;
+  }
+  .sidebar.mob-open { transform: translateX(0); }
+  .main { margin-left: 0 !important; }
+  .footer { margin-left: 0 !important; }
+  .topbar { padding: 10px 12px !important; gap: 6px !important; }
+  .content { padding: 12px !important; }
+  .hero { padding: 18px 14px !important; }
+  .hero-title { font-size: clamp(22px,6vw,36px) !important; }
+  .hero-stats { gap: 12px !important; }
+  .hero-btns { gap: 7px !important; }
+  .hero-btns .btn { padding: 9px 14px !important; font-size: 13px !important; }
+  .betslip { width: 100% !important; max-height: 70vh; top: auto !important; bottom: 0; border-radius: 16px 16px 0 0; }
+  .bs-toggle { bottom: 14px; right: 14px; font-size: 13px; padding: 9px 15px; }
+  .games-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 7px !important; }
+  .match-odds-col .odd-btn { min-width: 44px !important; padding: 5px 7px !important; }
+  .odd-val { font-size: 12px !important; }
+  .match-teams-col .team-n { max-width: 120px !important; font-size: 12px !important; }
+  .team-sc { font-size: 15px !important; }
+  .methods-grid { grid-template-columns: 1fr 1fr !important; gap: 7px !important; }
+  .dep-wrap { max-width: 100% !important; }
+  .modal { padding: 18px 14px !important; margin: 10px !important; }
+  .stat-cards { grid-template-columns: 1fr 1fr !important; }
+  .promo-grid { grid-template-columns: 1fr !important; }
+  .search-wrap { max-width: none !important; flex: 1 !important; }
+  .tb-right { gap: 4px !important; }
+  .btn-sm { padding: 6px 10px !important; font-size: 11px !important; }
+  input, select, textarea { font-size: 16px !important; }
+  .btn { min-height: 40px; }
+  .nav-item { min-height: 44px; }
+  .match-row { padding: 9px 10px !important; gap: 7px !important; }
+  .detail-box { margin: 8px !important; }
+  .detail-score { font-size: 38px !important; }
+  .avi-ctrl { padding: 10px !important; gap: 7px !important; }
+  .avi-btn { padding: 10px !important; font-size: 13px !important; }
+  .notify { top: auto !important; bottom: 70px; right: 10px; left: 10px; max-width: none !important; }
+}
+
+/* Hamburger */
+.mob-hamburger {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  cursor: pointer;
+  padding: 7px;
+  background: none;
+  border: none;
+  flex-shrink: 0;
+}
+.mob-hamburger span {
+  display: block;
+  width: 21px; height: 2px;
+  background: var(--text);
+  border-radius: 2px;
+  transition: all 0.25s;
+}
+@media (max-width: 768px) {
+  .mob-hamburger { display: flex; }
+}
+
+/* Overlay sidebar mobile */
+#mob-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.65);
+  z-index: 195;
+  backdrop-filter: blur(2px);
+}
+#mob-overlay.show { display: block; }
+
+/* Loading states botões */
+.btn-loading { position: relative; pointer-events: none; opacity: 0.75; }
+.btn-loading::after {
+  content: '';
+  position: absolute; top: 50%; left: 50%;
+  width: 14px; height: 14px;
+  border: 2px solid rgba(0,0,0,0.2);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  transform: translate(-50%,-50%);
+  animation: spin 0.6s linear infinite;
+}
+
+/* Validação de inputs */
+.input-err { border-color: var(--red) !important; }
+.input-ok { border-color: var(--green) !important; }
+.field-msg { font-size: 10px; margin-top: 3px; display: block; color: var(--red); }
+
+/* Touch feedback */
+@media (hover: none) {
+  .btn:active { transform: scale(0.96); }
+  .match-row:active { background: rgba(240,180,41,0.06) !important; }
+  .odd-btn:active { border-color: var(--gold) !important; }
+  .nav-item:active { background: rgba(255,255,255,0.05) !important; }
+}
+
 </style>
 </head>
-  
 <body>
 
 <aside class="sidebar">
@@ -1440,6 +1544,118 @@ setInterval(()=>{
   if(currentUser) syncSaldo();
 },60000);
 </script>
-  <script src="/onlybet-patch.js"></script>
+<script>
+// ============================================================
+// MOBILE & UX — Patch v2 incorporado
+// ============================================================
+(function() {
+  // Injectar overlay
+  const overlay = document.createElement('div');
+  overlay.id = 'mob-overlay';
+  document.body.appendChild(overlay);
+
+  // Hamburger
+  const topbar = document.querySelector('.topbar');
+  const sidebar = document.querySelector('.sidebar');
+  if (topbar && sidebar) {
+    const ham = document.createElement('button');
+    ham.className = 'mob-hamburger';
+    ham.setAttribute('aria-label', 'Menu');
+    ham.innerHTML = '<span></span><span></span><span></span>';
+    topbar.insertBefore(ham, topbar.firstChild);
+
+    const openSidebar = () => { sidebar.classList.add('mob-open'); overlay.classList.add('show'); };
+    const closeSidebar = () => { sidebar.classList.remove('mob-open'); overlay.classList.remove('show'); };
+
+    ham.addEventListener('click', () => {
+      sidebar.classList.contains('mob-open') ? closeSidebar() : openSidebar();
+    });
+    overlay.addEventListener('click', closeSidebar);
+
+    // Fechar ao navegar
+    document.querySelectorAll('.nav-item').forEach(item => {
+      item.addEventListener('click', () => { if (window.innerWidth < 768) closeSidebar(); });
+    });
+
+    // Swipe para abrir/fechar
+    let startX = 0;
+    document.addEventListener('touchstart', e => { startX = e.touches[0].clientX; }, { passive: true });
+    document.addEventListener('touchend', e => {
+      const dx = e.changedTouches[0].clientX - startX;
+      if (window.innerWidth >= 768) return;
+      if (dx > 55 && startX < 25) openSidebar();
+      else if (dx < -55) closeSidebar();
+    }, { passive: true });
+  }
+
+  // Fix viewport iOS (100vh bug)
+  const setVH = () => document.documentElement.style.setProperty('--vh', window.innerHeight * 0.01 + 'px');
+  setVH();
+  window.addEventListener('resize', setVH);
+
+  // Validação em tempo real no registo
+  function setField(input, ok, msg) {
+    if (!input) return;
+    input.classList.toggle('input-err', !ok);
+    input.classList.toggle('input-ok', ok);
+    let m = input.parentNode.querySelector('.field-msg');
+    if (!m) { m = document.createElement('span'); m.className = 'field-msg'; input.parentNode.appendChild(m); }
+    m.textContent = ok ? '' : (msg || '');
+  }
+  const rEmail = document.getElementById('rEmail');
+  const rPhone = document.getElementById('rPhone');
+  const rPass = document.getElementById('rPass');
+  if (rEmail) rEmail.addEventListener('blur', () => setField(rEmail, /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rEmail.value), 'Email inválido'));
+  if (rPhone) rPhone.addEventListener('blur', () => setField(rPhone, /^\d{9}$/.test(rPhone.value.replace(/\s/g,'')), '9 dígitos obrigatórios'));
+  if (rPass) rPass.addEventListener('input', () => { if (rPass.value) setField(rPass, rPass.value.length >= 8, 'Mínimo 8 caracteres'); });
+
+  // Antifraude cliente
+  let _depCount = 0, _depTime = 0, _betCount = 0, _betTime = 0, _levTime = 0;
+  window.OBFraud = {
+    canDeposit(v) {
+      const n = Date.now();
+      if (n - _depTime > 3600000) { _depCount = 0; _depTime = n; }
+      if (_depCount >= 5) return { ok: false, msg: 'Limite de 5 depósitos/hora atingido.' };
+      const val = parseFloat(v);
+      if (isNaN(val) || val < 500 || val > 1000000) return { ok: false, msg: 'Valor inválido (500–1.000.000 Kz).' };
+      _depCount++; return { ok: true };
+    },
+    canBet(v) {
+      const n = Date.now();
+      if (n - _betTime > 60000) { _betCount = 0; _betTime = n; }
+      if (_betCount >= 10) return { ok: false, msg: 'Demasiadas apostas. Aguarda 1 minuto.' };
+      const val = parseFloat(v);
+      if (isNaN(val) || val < 100 || val > 100000) return { ok: false, msg: 'Aposta: 100–100.000 Kz.' };
+      _betCount++; return { ok: true };
+    },
+    canWithdraw() {
+      const n = Date.now();
+      if (n - _levTime < 3600000) return { ok: false, msg: 'Apenas 1 levantamento por hora.' };
+      _levTime = n; return { ok: true };
+    }
+  };
+
+  // Polling de notificações do servidor
+  let _lastNotif = Date.now();
+  setInterval(async () => {
+    const user = typeof currentUser !== 'undefined' ? currentUser : null;
+    if (!user || !user.id) return;
+    try {
+      const r = await fetch('/api/transacoes?action=notificacoes&user_id=' + user.id);
+      if (!r.ok) return;
+      const notifs = await r.json();
+      if (!Array.isArray(notifs)) return;
+      notifs.filter(n => !n.lida && new Date(n.criado_em).getTime() > _lastNotif - 30000).forEach(n => {
+        const tipo = n.tipo === 'sucesso' ? 'ok' : n.tipo === 'erro' ? 'err' : 'info';
+        if (typeof notify === 'function') notify(n.titulo + ': ' + n.mensagem, tipo);
+        fetch('/api/transacoes?action=notif_lida', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({notif_id: n.id}) }).catch(() => {});
+      });
+      _lastNotif = Date.now();
+    } catch(e) {}
+  }, 30000);
+
+  console.log('✅ OnlyBet Mobile v2 activo');
+})();
+</script>
 </body>
 </html>
