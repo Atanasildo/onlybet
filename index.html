@@ -1783,24 +1783,22 @@ setInterval(()=>{
     }
   };
 
-  // Polling de notificações do servidor
+  // Polling de notificações — só activo quando logged in
   let _lastNotif = Date.now();
   setInterval(async () => {
-    const user = typeof currentUser !== 'undefined' ? currentUser : null;
-    if (!user || !user.id) return;
     try {
-      const r = await fetch('/api/transacoes?action=notificacoes&user_id=' + user.id);
+      if (typeof currentUser === 'undefined' || !currentUser || !currentUser.id) return;
+      const r = await fetch('/api/transacoes?action=notificacoes&user_id=' + currentUser.id);
       if (!r.ok) return;
       const notifs = await r.json();
       if (!Array.isArray(notifs)) return;
-      notifs.filter(n => !n.lida && new Date(n.criado_em).getTime() > _lastNotif - 30000).forEach(n => {
+      notifs.filter(n => !n.lida).slice(0,3).forEach(n => {
         const tipo = n.tipo === 'sucesso' ? 'ok' : n.tipo === 'erro' ? 'err' : 'info';
         if (typeof notify === 'function') notify(n.titulo + ': ' + n.mensagem, tipo);
         fetch('/api/transacoes?action=notif_lida', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({notif_id: n.id}) }).catch(() => {});
       });
-      _lastNotif = Date.now();
     } catch(e) {}
-  }, 30000);
+  }, 60000);
 
   console.log('✅ OnlyBet Mobile v2 activo');
 })();
