@@ -237,19 +237,7 @@ module.exports = async (req, res) => {
       body: JSON.stringify({ saldo: novoSaldo })
     });
 
-    // Calcular resultado baseado na odd (house edge 8%)
-    const prob = (1 / oddNum) * (1 - 0.08);
-    const ganhou = Math.random() < prob;
-    const ganhoReal = ganhou ? Math.round(valorNum * oddNum) : 0;
-    const saldoFinal = ganhou ? novoSaldo + ganhoReal : novoSaldo;
-
-    if (ganhou) {
-      await sb(`utilizadores?id=eq.${user_id}`, {
-        method: 'PATCH',
-        body: JSON.stringify({ saldo: saldoFinal })
-      });
-    }
-
+    // Aposta fica PENDENTE — será resolvida pelo admin quando o jogo terminar
     await sb('apostas', {
       method: 'POST',
       body: JSON.stringify({
@@ -257,28 +245,27 @@ module.exports = async (req, res) => {
         valor_apostado: valorNum,
         odd_total: oddNum,
         ganho_potencial: parseFloat(ganho_potencial) || Math.round(valorNum * oddNum),
-        resultado: ganhou ? 'ganhou' : 'perdeu',
-        ganho_real: ganhoReal
+        resultado: 'pendente',
+        ganho_real: 0
       })
     });
 
-    if (ganhou) {
-      await sb('notificacoes', {
-        method: 'POST',
-        body: JSON.stringify({
-          user_id,
-          titulo: '🎉 Apostas Ganhou!',
-          mensagem: `Ganhou ${ganhoReal.toLocaleString('pt-AO')} Kz na aposta de ${jogo}!`,
-          tipo: 'sucesso'
-        })
-      }).catch(() => {});
-    }
+    // Notificar utilizador que a aposta foi registada
+    await sb('notificacoes', {
+      method: 'POST',
+      body: JSON.stringify({
+        user_id,
+        titulo: '🎯 Aposta Registada',
+        mensagem: `Aposta de ${valorNum.toLocaleString('pt-AO')} Kz em "${jogo}" registada. Odd: ${oddNum}x. Ganho potencial: ${Math.round(valorNum * oddNum).toLocaleString('pt-AO')} Kz.`,
+        tipo: 'info'
+      })
+    }).catch(() => {});
 
     return res.json({
       ok: true,
-      resultado: ganhou ? 'ganhou' : 'perdeu',
-      ganho_real: ganhoReal,
-      saldo_novo: saldoFinal
+      resultado: 'pendente',
+      ganho_real: 0,
+      saldo_novo: novoSaldo
     });
   }
 
