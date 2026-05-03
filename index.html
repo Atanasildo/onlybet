@@ -640,10 +640,24 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;font
   <div class="bs-hdr"><div class="bs-title">Boletim</div><div class="bs-cnt" id="bsCnt2">0</div><div class="close-x" onclick="toggleBS()">✕</div></div>
   <div class="bs-body" id="bsBody"><p style="color:var(--muted);font-size:12px;text-align:center;padding:18px 0">Seleciona uma odd para começar</p></div>
   <div class="bs-foot">
+    <div style="display:flex;gap:5px;margin-bottom:8px">
+      <button onclick="setStake(500)" style="flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:5px;font-size:11px;cursor:pointer">500</button>
+      <button onclick="setStake(1000)" style="flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:5px;font-size:11px;cursor:pointer">1K</button>
+      <button onclick="setStake(2000)" style="flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:5px;font-size:11px;cursor:pointer">2K</button>
+      <button onclick="setStake(5000)" style="flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:5px;font-size:11px;cursor:pointer">5K</button>
+      <button onclick="setStake(getBal())" style="flex:1;background:var(--bg3);border:1px solid rgba(240,180,41,0.3);color:var(--gold);border-radius:6px;padding:5px;font-size:10px;cursor:pointer">MAX</button>
+    </div>
     <div class="stake-row"><div class="stake-lbl">Aposta (Kz)</div><input type="number" class="stake-inp" id="stakeInp" value="500" oninput="calcPay()"></div>
-    <div class="pay-row"><span style="color:var(--muted)">Odd Total</span><span id="totOdd" class="pay-val" style="color:var(--gold)">—</span></div>
-    <div class="pay-row"><span style="color:var(--muted)">Ganho Potencial</span><span id="potPay" class="pay-val">—</span></div>
-    <button class="btn btn-gold" style="width:100%;padding:11px;font-size:13px;border-radius:8px;margin-top:7px" onclick="placeBet()">Confirmar Aposta</button>
+    <div class="pay-row" style="margin-top:6px">
+      <span style="color:var(--muted);font-size:11px">Odd Total</span>
+      <span id="totOdd" class="pay-val" style="color:var(--gold);font-weight:800">—</span>
+    </div>
+    <div class="pay-row" style="background:rgba(0,230,118,0.05);border:1px solid rgba(0,230,118,0.15);border-radius:7px;padding:7px 10px;margin-top:6px">
+      <span style="color:var(--muted);font-size:11px">Ganho Potencial</span>
+      <span id="potPay" class="pay-val" style="color:var(--green);font-weight:800;font-size:15px">—</span>
+    </div>
+    <button class="btn btn-gold" style="width:100%;padding:12px;font-size:14px;font-weight:800;border-radius:8px;margin-top:8px;letter-spacing:0.5px" onclick="placeBet()">✅ Confirmar Aposta</button>
+    <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:6px">18+ · Joga com responsabilidade</div>
   </div>
 </div>
 
@@ -1149,23 +1163,48 @@ function addBS(id, pick, odd, league, matchName){
 function removeBS(id){ betslip=betslip.filter(b=>b.id!==id); renderBS(); }
 function renderBS(){
   const cnt=betslip.length;
-  document.getElementById('bsCnt').textContent=cnt;
-  document.getElementById('bsCnt2').textContent=cnt;
+  // Actualizar contadores
+  document.querySelectorAll('#bsCnt,#bsCnt2').forEach(el=>el.textContent=cnt);
   const body=document.getElementById('bsBody');
-  if(!cnt){ body.innerHTML='<p style="color:var(--muted);font-size:12px;text-align:center;padding:18px 0">Seleciona uma odd para começar</p>'; calcPay(); return; }
-  body.innerHTML=betslip.map(b=>`<div class="slip-item">
-    <div class="slip-match">${b.league} — ${b.matchName}</div>
-    <div class="slip-pick">${b.pick}<span class="slip-rm" onclick="removeBS('${b.id}')">✕</span></div>
-    <div class="slip-odd">${(+b.odd).toFixed(2)}</div>
-  </div>`).join('');
+  if(!cnt){
+    body.innerHTML=`<div style="text-align:center;padding:24px 12px">
+      <div style="font-size:32px;margin-bottom:8px">🎯</div>
+      <div style="color:var(--muted);font-size:12px;line-height:1.6">Clica numa odd para<br>adicionar ao boletim</div>
+    </div>`;
+    calcPay(); return;
+  }
+  body.innerHTML=betslip.map((b,i)=>`
+    <div class="slip-item" style="background:var(--bg3);border-radius:8px;padding:10px 12px;margin-bottom:6px;border-left:3px solid var(--gold)">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
+        <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">${b.league||'Liga'}</div>
+        <button onclick="removeBS('${b.id}')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:0;line-height:1">✕</button>
+      </div>
+      <div style="font-size:12px;font-weight:600;margin-bottom:4px;color:var(--text)">${b.matchName}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:11px;color:var(--gold);font-weight:600">▶ ${b.pick}</span>
+        <span style="font-size:15px;font-weight:800;color:var(--gold)">${(+b.odd).toFixed(2)}</span>
+      </div>
+    </div>`).join('');
   calcPay();
 }
+
 function calcPay(){
-  if(!betslip.length){ document.getElementById('totOdd').textContent='—'; document.getElementById('potPay').textContent='—'; return; }
+  if(!betslip.length){
+    document.getElementById('totOdd').textContent='—';
+    document.getElementById('potPay').textContent='—';
+    return;
+  }
   const tot=betslip.reduce((a,b)=>a*b.odd,1);
   const stake=parseFloat(document.getElementById('stakeInp').value)||0;
-  document.getElementById('totOdd').textContent=tot.toFixed(2);
-  document.getElementById('potPay').textContent=(tot*stake).toLocaleString('pt-AO')+' Kz';
+  document.getElementById('totOdd').textContent=tot.toFixed(2)+'x';
+  document.getElementById('potPay').textContent=Math.round(tot*stake).toLocaleString('pt-AO')+' Kz';
+}
+
+function setStake(val){
+  const inp = document.getElementById('stakeInp');
+  if(!inp) return;
+  inp.value = Math.floor(val);
+  calcPay();
 }
 async function placeBet(){
   if(!currentUser){ openAuth('login'); return; }
@@ -1177,28 +1216,33 @@ async function placeBet(){
   const payout=stake*tot;
   const jogo=betslip.map(b=>b.matchName).join(' + ');
   const detalhe=betslip.map(b=>`${b.pick} @ ${b.odd.toFixed(2)}`).join(' · ');
-  // Antifraude cliente
-  const fc = window.OBFraud ? window.OBFraud.canBet(stake) : {ok:true};
-  if(!fc.ok){ notify(fc.msg,'err'); return; }
   const btn=document.querySelector('[onclick="placeBet()"]');
   if(btn){ btn.disabled=true; btn.textContent='A processar...'; }
   try {
-    const r=await fetch('/api/transacoes?action=aposta',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:currentUser.id,jogo,detalhe,valor_apostado:stake,odd_total:tot.toFixed(2),ganho_potencial:payout})});
+    const r=await fetch('/api/transacoes?action=aposta',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      user_id:currentUser.id,
+      jogo,
+      detalhe,
+      valor_apostado:stake,
+      odd_total:tot.toFixed(2),
+      ganho_potencial:Math.round(payout)
+    })});
     const d=await r.json();
     if(btn){ btn.disabled=false; btn.textContent='Confirmar Aposta'; }
     if(!d.ok){ notify(d.error||'Erro ao registar aposta','err'); return; }
+
+    // Actualizar saldo
     currentUser.saldo=d.saldo_novo; DB.set('session',currentUser);
-    updateUI(); betslip=[]; renderBS();
+    updateUI();
+
+    // Limpar boletim
+    betslip=[]; renderBS();
     try{ document.getElementById('betslip').classList.remove('open'); }catch(e){}
-    // Mostrar resultado com destaque
-    if(d.resultado==='ganhou'){
-      notify(`🎉 GANHOU! +${d.ganho_real.toLocaleString('pt-AO')} Kz  (Odd ${tot.toFixed(2)}x)`,'ok');
-      showBetResult(true, d.ganho_real, stake);
-    } else {
-      notify(`❌ Perdeu. -${stake.toLocaleString('pt-AO')} Kz  (Odd ${tot.toFixed(2)}x)`,'err');
-      showBetResult(false, 0, stake);
-    }
-    // Actualizar histórico em cache
+
+    // Confirmação discreta — como numa casa de apostas real
+    showBetConfirmation(jogo, detalhe, stake, tot, Math.round(payout));
+
+    // Actualizar histórico
     await loadUserHistory();
   } catch(e){
     if(btn){ btn.disabled=false; btn.textContent='Confirmar Aposta'; }
@@ -1206,24 +1250,46 @@ async function placeBet(){
   }
 }
 
-function showBetResult(ganhou, ganho, stake){
-  // Overlay de resultado da aposta
-  let ov = document.getElementById('betResultOv');
-  if(!ov){
-    ov = document.createElement('div');
-    ov.id = 'betResultOv';
-    ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:900;display:flex;align-items:center;justify-content:center;';
-    ov.addEventListener('click', ()=>ov.remove());
-    document.body.appendChild(ov);
+function showBetConfirmation(jogo, detalhe, stake, odd, ganho_potencial){
+  // Toast de confirmação no topo — estilo profissional
+  let toast = document.getElementById('betToast');
+  if(!toast){
+    toast = document.createElement('div');
+    toast.id = 'betToast';
+    toast.style.cssText = `
+      position:fixed;top:70px;right:16px;z-index:800;
+      background:var(--bg2);border:1px solid var(--green);border-radius:12px;
+      padding:14px 18px;max-width:300px;
+      box-shadow:0 8px 32px rgba(0,230,118,0.15);
+      transform:translateX(120%);transition:transform 0.3s cubic-bezier(0.4,0,0.2,1);
+    `;
+    document.body.appendChild(toast);
   }
-  ov.innerHTML = `<div style="background:var(--bg2);border:2px solid ${ganhou?'var(--green)':'var(--red)'};border-radius:18px;padding:36px 40px;text-align:center;max-width:320px">
-    <div style="font-size:52px">${ganhou?'🎉':'😔'}</div>
-    <div style="font-size:22px;font-weight:800;margin:12px 0;color:${ganhou?'var(--green)':'var(--red)'}">${ganhou?'GANHOU!':'PERDEU'}</div>
-    <div style="font-size:28px;font-weight:900;color:${ganhou?'var(--green)':'var(--red)'}">${ganhou?'+'+ganho.toLocaleString('pt-AO'):'-'+stake.toLocaleString('pt-AO')} Kz</div>
-    <div style="color:var(--muted);font-size:12px;margin-top:8px">Clica para fechar</div>
-  </div>`;
-  ov.style.display='flex';
-  setTimeout(()=>ov.remove(), 5000);
+  toast.innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+      <span style="color:var(--green);font-size:16px">✅</span>
+      <span style="font-size:13px;font-weight:700;color:var(--green)">Aposta Registada</span>
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${jogo}</div>
+    <div style="font-size:10px;color:var(--muted);margin-bottom:10px">${detalhe}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+      <div style="background:var(--bg3);border-radius:6px;padding:6px;text-align:center">
+        <div style="font-size:9px;color:var(--muted);margin-bottom:2px">APOSTADO</div>
+        <div style="font-size:13px;font-weight:700">${stake.toLocaleString('pt-AO')} Kz</div>
+      </div>
+      <div style="background:var(--bg3);border-radius:6px;padding:6px;text-align:center">
+        <div style="font-size:9px;color:var(--muted);margin-bottom:2px">ODD TOTAL</div>
+        <div style="font-size:13px;font-weight:700;color:var(--gold)">${odd.toFixed(2)}x</div>
+      </div>
+    </div>
+    <div style="background:rgba(0,230,118,0.08);border:1px solid rgba(0,230,118,0.2);border-radius:6px;padding:7px;text-align:center;margin-top:8px">
+      <div style="font-size:9px;color:var(--muted);margin-bottom:2px">GANHO POTENCIAL</div>
+      <div style="font-size:16px;font-weight:800;color:var(--green)">${ganho_potencial.toLocaleString('pt-AO')} Kz</div>
+    </div>
+    <div style="font-size:10px;color:var(--muted);text-align:center;margin-top:8px">⏳ Pendente até ao fim do jogo</div>
+  `;
+  toast.style.transform = 'translateX(0)';
+  setTimeout(() => { toast.style.transform = 'translateX(120%)'; }, 6000);
 }
 
 // ============================================================
