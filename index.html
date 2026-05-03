@@ -412,7 +412,7 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;font
   <div class="nav-item" onclick="goPage('deposit',this)"><span class="nav-icon">💳</span>Depositar</div>
   <div class="nav-item" onclick="goPage('withdraw',this)"><span class="nav-icon">💸</span>Levantar</div>
   <div class="nav-item" onclick="goPage('promos',this)"><span class="nav-icon">🎁</span>Promoções</div>
-  <div class="nav-item" onclick="goPage('account',this)"><span class="nav-icon">👤</span>Minha Conta</div>
+  <div class="nav-item" onclick="goPage('account',this)"><span class="nav-icon">👤</span>Minha Conta<span id="accBadge" style="display:none;margin-left:auto;background:var(--gold);color:#000;font-size:9px;font-weight:800;padding:1px 6px;border-radius:4px">APOSTAS</span></div>
   <div class="sidebar-bot">
     <div class="user-card" onclick="openAuth('login')">
       <div class="avatar" id="av">?</div>
@@ -776,6 +776,14 @@ async function loadUserHistory(){
     _betsCache = rb.ok ? (await rb.json()) : [];
     if(!Array.isArray(_txCache)) _txCache=[];
     if(!Array.isArray(_betsCache)) _betsCache=[];
+
+    // Mostrar badge no nav se há apostas pendentes
+    const pendentes = _betsCache.filter(b=>b.resultado==='pendente'||!b.resultado).length;
+    const badge = document.getElementById('accBadge');
+    if(badge){
+      badge.style.display = pendentes > 0 ? 'inline' : 'none';
+      badge.textContent = pendentes + ' em curso';
+    }
   }catch(e){ _txCache=[]; _betsCache=[]; }
 }
 function getTx(){ return _txCache; }
@@ -1242,8 +1250,22 @@ async function placeBet(){
     // Confirmação discreta — como numa casa de apostas real
     showBetConfirmation(jogo, detalhe, stake, tot, Math.round(payout));
 
-    // Actualizar histórico
+    // Actualizar histórico e mostrar onde ver a aposta
     await loadUserHistory();
+
+    // Mostrar indicador no nav "Minha Conta"
+    const navAccount = document.querySelector('.nav-item[onclick*="account"]');
+    if(navAccount){
+      let badge = navAccount.querySelector('.nbadge');
+      if(!badge){
+        badge = document.createElement('span');
+        badge.className = 'nbadge hot';
+        badge.style.cssText = 'margin-left:auto;font-size:9px;padding:1px 6px;';
+        navAccount.appendChild(badge);
+      }
+      badge.textContent = 'VER';
+      setTimeout(()=>badge.remove(), 10000);
+    }
   } catch(e){
     if(btn){ btn.disabled=false; btn.textContent='Confirmar Aposta'; }
     notify('Erro de ligação. Tenta novamente.','err');
@@ -1286,7 +1308,10 @@ function showBetConfirmation(jogo, detalhe, stake, odd, ganho_potencial){
       <div style="font-size:9px;color:var(--muted);margin-bottom:2px">GANHO POTENCIAL</div>
       <div style="font-size:16px;font-weight:800;color:var(--green)">${ganho_potencial.toLocaleString('pt-AO')} Kz</div>
     </div>
-    <div style="font-size:10px;color:var(--muted);text-align:center;margin-top:8px">⏳ Pendente até ao fim do jogo</div>
+    <div onclick="goPage('account',document.querySelector('.nav-item[onclick*=account]'));setTimeout(()=>switchAccTab('pend'),100);document.getElementById('betToast').style.transform='translateX(120%)';"
+      style="font-size:11px;color:var(--gold);text-align:center;margin-top:8px;cursor:pointer;font-weight:600;padding:4px">
+      👁 Ver aposta em "Minha Conta" →
+    </div>
   `;
   toast.style.transform = 'translateX(0)';
   setTimeout(() => { toast.style.transform = 'translateX(120%)'; }, 6000);
@@ -1598,6 +1623,11 @@ function renderBetRows(bets){
 async function renderAccount(){
   if(!currentUser) return;
   document.getElementById('acc-bal').textContent=getBal().toLocaleString('pt-AO')+' Kz';
+  // Mostrar loading em todos os painéis
+  ['tx-tbody','bet-tbody','pend-tbody'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:18px">⏳ A carregar...</td></tr>';
+  });
   await loadUserHistory();
   const txs=getTx();
   const bets=getBets();
