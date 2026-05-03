@@ -3,7 +3,6 @@
   "builds": [
     { "src": "api/*.js", "use": "@vercel/node" },
     { "src": "index.html", "use": "@vercel/static" },
-    { "src": "onlybet-patch.js", "use": "@vercel/static" },
     { "src": "admin/index.html", "use": "@vercel/static" }
   ],
   "routes": [
@@ -16,5 +15,25 @@
     { "src": "/admin", "dest": "/admin/index.html" },
     { "src": "/admin/", "dest": "/admin/index.html" },
     { "src": "/(.*)", "dest": "/index.html" }
+  ],
+  "headers": [
+    {
+      "source": "/index.html",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store, no-cache, must-revalidate" }
+      ]
+    },
+    {
+      "source": "/admin/index.html",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store, no-cache, must-revalidate" }
+      ]
+    },
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store" }
+      ]
+    }
   ]
 }
