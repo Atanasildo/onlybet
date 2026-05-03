@@ -317,12 +317,20 @@ body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,
         </div>
         <div class="card">
           <div class="card-hdr">
-            <div class="card-title">🎯 Histórico de Apostas</div>
-            <button class="btn btn-outline btn-sm" onclick="loadApostas()">↺</button>
+            <div class="card-title">🎯 Apostas</div>
+            <div style="display:flex;gap:6px">
+              <select class="filter-sel" id="apostasFilter" onchange="loadApostas()">
+                <option value="pendente">⏳ Pendentes</option>
+                <option value="ganhou">✅ Ganhas</option>
+                <option value="perdeu">❌ Perdidas</option>
+                <option value="">Todas</option>
+              </select>
+              <button class="btn btn-outline btn-sm" onclick="loadApostas()">↺</button>
+            </div>
           </div>
           <div class="tbl-wrap"><table class="tbl">
-            <thead><tr><th>Data</th><th>User ID</th><th>Jogo</th><th>Detalhe</th><th>Valor</th><th>Odd</th><th>Ganho Pot.</th><th>Resultado</th><th>Ganho Real</th></tr></thead>
-            <tbody id="apostasTbody"><tr><td colspan="9" class="loading"><span class="spinner"></span></td></tr></tbody>
+            <thead><tr><th>Data</th><th>Utilizador</th><th>Jogo / Seleções</th><th>Apostado</th><th>Odd</th><th>Ganho Pot.</th><th>Estado</th><th>Acção</th></tr></thead>
+            <tbody id="apostasTbody"><tr><td colspan="8" class="loading"><span class="spinner"></span></td></tr></tbody>
           </table></div>
         </div>
       </div>
@@ -779,7 +787,8 @@ async function confirmarRejeicao() {
 // ── APOSTAS ───────────────────────────────────────────────────
 async function loadApostas() {
   try {
-    const data = await api('apostas');
+    const estado = document.getElementById('apostasFilter')?.value || '';
+    const data = await api('apostas' + (estado ? '&estado=' + estado : ''));
     const apostas = Array.isArray(data) ? data : [];
     const vol = apostas.reduce((s,a) => s + parseFloat(a.valor_apostado||0), 0);
     const ganho = apostas.filter(a=>a.resultado==='ganhou').reduce((s,a) => s + parseFloat(a.ganho_real||0), 0);
@@ -790,20 +799,42 @@ async function loadApostas() {
     document.getElementById('ap-hold').textContent = vol > 0 ? (ggr/vol*100).toFixed(1) + '%' : '0%';
 
     const tbody = document.getElementById('apostasTbody');
-    if (!apostas.length) { tbody.innerHTML = '<tr><td colspan="9" class="empty">Sem apostas.</td></tr>'; return; }
+    if (!apostas.length) { tbody.innerHTML = '<tr><td colspan="8" class="empty">Sem apostas.</td></tr>'; return; }
     tbody.innerHTML = apostas.map(a => `
       <tr>
-        <td>${fmtDate(a.criado_em)}</td>
+        <td style="font-size:10px;white-space:nowrap">${fmtDate(a.criado_em)}</td>
         <td style="font-size:10px;color:var(--muted)">${(a.user_id||'').slice(0,10)}...</td>
-        <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${a.jogo||'—'}</td>
-        <td style="font-size:10px;color:var(--muted);max-width:100px;overflow:hidden;text-overflow:ellipsis">${a.detalhe||'—'}</td>
-        <td>${fmtKz(a.valor_apostado)}</td>
-        <td style="color:var(--gold)">${parseFloat(a.odd_total||0).toFixed(2)}x</td>
-        <td>${fmtKz(a.ganho_potencial)}</td>
+        <td>
+          <div style="font-size:11px;font-weight:600;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${a.jogo||'—'}</div>
+          <div style="font-size:10px;color:var(--muted);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${a.detalhe||''}</div>
+        </td>
+        <td style="font-weight:700">${fmtKz(a.valor_apostado)}</td>
+        <td style="color:var(--gold);font-weight:700">${parseFloat(a.odd_total||0).toFixed(2)}x</td>
+        <td style="color:var(--green)">${fmtKz(a.ganho_potencial)}</td>
         <td>${estadoBadge(a.resultado||'pendente')}</td>
-        <td style="color:${a.resultado==='ganhou'?'var(--green)':'var(--red)'}">${a.resultado==='ganhou'?fmtKz(a.ganho_real):'—'}</td>
+        <td style="white-space:nowrap">
+          ${a.resultado==='pendente' ? `
+            <button class="btn btn-green btn-sm" onclick="resolverAposta('${a.id}','ganhou')" title="Marcar como Ganha">✅</button>
+            <button class="btn btn-red btn-sm" onclick="resolverAposta('${a.id}','perdeu')" title="Marcar como Perdida">❌</button>
+            <button class="btn btn-outline btn-sm" onclick="resolverAposta('${a.id}','cancelada')" title="Cancelar e devolver">↩</button>
+          ` : `<span style="color:var(--muted);font-size:11px">${a.resultado==='ganhou'?'+'+fmtKz(a.ganho_real):'—'}</span>`}
+        </td>
       </tr>`).join('');
   } catch(e) { notify('Erro ao carregar apostas', 'err'); }
+}
+
+async function resolverAposta(id, resultado) {
+  const labels = {ganhou:'✅ Marcar como GANHA?', perdeu:'❌ Marcar como PERDIDA?', cancelada:'↩ Cancelar e devolver aposta?'};
+  if (!confirm(labels[resultado] + '\nEsta acção é irreversível.')) return;
+  try {
+    const d = await api('resolver_aposta', 'POST', {id, resultado});
+    if (d.ok) {
+      const msgs = {ganhou:'✅ Aposta marcada como ganha! Saldo creditado.', perdeu:'❌ Aposta marcada como perdida.', cancelada:'↩ Aposta cancelada. Valor devolvido.'};
+      notify(msgs[resultado], resultado==='ganhou'?'ok':'info');
+      loadApostas();
+      loadDashboard();
+    } else notify(d.error || 'Erro', 'err');
+  } catch(e) { notify('Erro de ligação', 'err'); }
 }
 
 // ── UTILIZADORES ──────────────────────────────────────────────
