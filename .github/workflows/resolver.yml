@@ -1,0 +1,20 @@
+name: Resolver Apostas OnlyBet
+
+on:
+  schedule:
+    # Corre a cada 5 minutos
+    - cron: '*/5 * * * *'
+  workflow_dispatch: # Permite correr manualmente
+
+jobs:
+  resolver:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolver apostas pendentes
+        run: |
+          curl -s -X POST \
+            -H "Content-Type: application/json" \
+            -H "x-cron-secret: ${{ secrets.CRON_SECRET }}" \
+            https://onlybet-seven.vercel.app/api/resolver \
+            && echo "✅ Resolver executado com sucesso" \
+            || echo "❌ Erro ao executar resolver"
