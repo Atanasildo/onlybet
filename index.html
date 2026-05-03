@@ -412,7 +412,8 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;font
   <div class="nav-item" onclick="goPage('deposit',this)"><span class="nav-icon">💳</span>Depositar</div>
   <div class="nav-item" onclick="goPage('withdraw',this)"><span class="nav-icon">💸</span>Levantar</div>
   <div class="nav-item" onclick="goPage('promos',this)"><span class="nav-icon">🎁</span>Promoções</div>
-  <div class="nav-item" onclick="goPage('account',this)"><span class="nav-icon">👤</span>Minha Conta<span id="accBadge" style="display:none;margin-left:auto;background:var(--gold);color:#000;font-size:9px;font-weight:800;padding:1px 6px;border-radius:4px">APOSTAS</span></div>
+  <div class="nav-item" onclick="goPage('mybets',this)"><span class="nav-icon">🎯</span>Minhas Apostas<span id="accBadge" style="display:none;margin-left:auto;background:var(--gold);color:#000;font-size:9px;font-weight:800;padding:1px 6px;border-radius:4px">0</span></div>
+  <div class="nav-item" onclick="goPage('account',this)"><span class="nav-icon">👤</span>Minha Conta</div>
   <div class="sidebar-bot">
     <div class="user-card" onclick="openAuth('login')">
       <div class="avatar" id="av">?</div>
@@ -623,6 +624,47 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;font
           <thead><tr><th>Data</th><th>Jogo / Seleções</th><th>Odd Total</th><th>Apostado</th><th>Ganho Pot.</th><th>Estado</th></tr></thead>
           <tbody id="pend-tbody"><tr><td colspan="6" style="text-align:center;color:var(--muted);padding:18px">⏳ A carregar...</td></tr></tbody>
         </table></div>
+      </div>
+    </div>
+
+    <!-- PÁGINA MINHAS APOSTAS -->
+    <div class="page" id="page-mybets">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px">
+        <div class="sec-title" style="margin:0">🎯 Minhas Apostas</div>
+        <button onclick="renderMyBets()" style="background:none;border:1px solid var(--border);color:var(--muted);border-radius:7px;padding:6px 14px;font-size:11px;cursor:pointer">↺ Actualizar</button>
+      </div>
+
+      <!-- STATS RÁPIDAS -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px">
+        <div style="background:var(--bg3);border-radius:10px;padding:14px;text-align:center;border:1px solid var(--border)">
+          <div style="font-size:22px;font-weight:800" id="mb-total">0</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px">Total</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:10px;padding:14px;text-align:center;border:1px solid rgba(240,180,41,0.3)">
+          <div style="font-size:22px;font-weight:800;color:var(--gold)" id="mb-pend">0</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px">⏳ Em Curso</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:10px;padding:14px;text-align:center;border:1px solid rgba(0,230,118,0.3)">
+          <div style="font-size:22px;font-weight:800;color:var(--green)" id="mb-ganhou">0</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px">✅ Ganhas</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:10px;padding:14px;text-align:center;border:1px solid rgba(255,61,87,0.3)">
+          <div style="font-size:22px;font-weight:800;color:var(--red)" id="mb-perdeu">0</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px">❌ Perdidas</div>
+        </div>
+      </div>
+
+      <!-- FILTROS -->
+      <div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap">
+        <button id="mbf-pend" onclick="filterMyBets('pendente')" class="btn btn-gold btn-sm">⏳ Em Curso</button>
+        <button id="mbf-all" onclick="filterMyBets('all')" class="btn btn-outline btn-sm">Todas</button>
+        <button id="mbf-ganhou" onclick="filterMyBets('ganhou')" class="btn btn-outline btn-sm">✅ Ganhas</button>
+        <button id="mbf-perdeu" onclick="filterMyBets('perdeu')" class="btn btn-outline btn-sm">❌ Perdidas</button>
+      </div>
+
+      <!-- LISTA DE APOSTAS -->
+      <div id="mybets-list">
+        <div style="text-align:center;padding:40px;color:var(--muted)">⏳ A carregar apostas...</div>
       </div>
     </div>
 
@@ -1250,22 +1292,8 @@ async function placeBet(){
     // Confirmação discreta — como numa casa de apostas real
     showBetConfirmation(jogo, detalhe, stake, tot, Math.round(payout));
 
-    // Actualizar histórico e mostrar onde ver a aposta
+    // Actualizar histórico
     await loadUserHistory();
-
-    // Mostrar indicador no nav "Minha Conta"
-    const navAccount = document.querySelector('.nav-item[onclick*="account"]');
-    if(navAccount){
-      let badge = navAccount.querySelector('.nbadge');
-      if(!badge){
-        badge = document.createElement('span');
-        badge.className = 'nbadge hot';
-        badge.style.cssText = 'margin-left:auto;font-size:9px;padding:1px 6px;';
-        navAccount.appendChild(badge);
-      }
-      badge.textContent = 'VER';
-      setTimeout(()=>badge.remove(), 10000);
-    }
   } catch(e){
     if(btn){ btn.disabled=false; btn.textContent='Confirmar Aposta'; }
     notify('Erro de ligação. Tenta novamente.','err');
@@ -1308,9 +1336,9 @@ function showBetConfirmation(jogo, detalhe, stake, odd, ganho_potencial){
       <div style="font-size:9px;color:var(--muted);margin-bottom:2px">GANHO POTENCIAL</div>
       <div style="font-size:16px;font-weight:800;color:var(--green)">${ganho_potencial.toLocaleString('pt-AO')} Kz</div>
     </div>
-    <div onclick="goPage('account',document.querySelector('.nav-item[onclick*=account]'));setTimeout(()=>switchAccTab('pend'),100);document.getElementById('betToast').style.transform='translateX(120%)';"
-      style="font-size:11px;color:var(--gold);text-align:center;margin-top:8px;cursor:pointer;font-weight:600;padding:4px">
-      👁 Ver aposta em "Minha Conta" →
+    <div onclick="goPage('mybets',document.querySelector('.nav-item[onclick*=mybets]'));document.getElementById('betToast').style.transform='translateX(120%)';"
+      style="font-size:11px;color:var(--gold);text-align:center;margin-top:8px;cursor:pointer;font-weight:700;padding:6px;background:rgba(240,180,41,0.1);border-radius:6px">
+      🎯 Ver em "Minhas Apostas" →
     </div>
   `;
   toast.style.transform = 'translateX(0)';
@@ -1582,6 +1610,93 @@ function updateUI(){
 }
 
 let _allBets = [];
+let _myBetsFilter = 'pendente';
+
+async function renderMyBets(){
+  if(!currentUser){
+    document.getElementById('mybets-list').innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">🔒 Faz login para ver as tuas apostas.</div>';
+    return;
+  }
+  document.getElementById('mybets-list').innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">⏳ A carregar...</div>';
+  await loadUserHistory();
+  _allBets = getBets();
+
+  // Stats
+  const pend = _allBets.filter(b=>!b.resultado||b.resultado==='pendente').length;
+  const ganhou = _allBets.filter(b=>b.resultado==='ganhou').length;
+  const perdeu = _allBets.filter(b=>b.resultado==='perdeu').length;
+  document.getElementById('mb-total').textContent = _allBets.length;
+  document.getElementById('mb-pend').textContent = pend;
+  document.getElementById('mb-ganhou').textContent = ganhou;
+  document.getElementById('mb-perdeu').textContent = perdeu;
+
+  filterMyBets(_myBetsFilter);
+}
+
+function filterMyBets(res){
+  _myBetsFilter = res;
+  // Actualizar botões
+  ['pend','all','ganhou','perdeu'].forEach(r=>{
+    const btn = document.getElementById('mbf-'+r);
+    if(btn) btn.className = 'btn btn-sm ' + (r===res||(r==='pend'&&res==='pendente') ? 'btn-gold' : 'btn-outline');
+  });
+
+  let filtered = _allBets;
+  if(res === 'pendente') filtered = _allBets.filter(b=>!b.resultado||b.resultado==='pendente');
+  else if(res !== 'all') filtered = _allBets.filter(b=>b.resultado===res);
+
+  const el = document.getElementById('mybets-list');
+  if(!filtered.length){
+    const msgs = {pendente:'Não tens apostas em curso.', ganhou:'Ainda não ganhaste nenhuma aposta.', perdeu:'Sem apostas perdidas.', all:'Não fizeste nenhuma aposta ainda.'};
+    el.innerHTML = `<div style="text-align:center;padding:48px 20px">
+      <div style="font-size:40px;margin-bottom:12px">${res==='ganhou'?'🏆':res==='perdeu'?'😔':'🎯'}</div>
+      <div style="color:var(--muted);font-size:13px">${msgs[res]||'Sem apostas.'}</div>
+      <button onclick="goPage('home',document.querySelector('.nav-item'))" style="margin-top:14px;background:var(--gold);color:#000;border:none;border-radius:8px;padding:9px 20px;font-size:12px;font-weight:700;cursor:pointer">Apostar Agora</button>
+    </div>`;
+    return;
+  }
+
+  el.innerHTML = filtered.map(b=>{
+    const isPend = !b.resultado || b.resultado==='pendente';
+    const isGanhou = b.resultado==='ganhou';
+    const val = parseFloat(b.valor_apostado||0);
+    const ganhoP = parseFloat(b.ganho_potencial||0);
+    const ganhoR = parseFloat(b.ganho_real||0);
+    const odd = parseFloat(b.odd_total||0);
+    const data = b.criado_em ? new Date(b.criado_em).toLocaleString('pt-AO',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'}) : '—';
+
+    const bordCor = isPend ? 'var(--gold)' : isGanhou ? 'var(--green)' : 'var(--red)';
+    const estadoTxt = isPend ? '⏳ Em Curso' : isGanhou ? '✅ Ganha' : '❌ Perdida';
+    const estadoCor = isPend ? 'var(--gold)' : isGanhou ? 'var(--green)' : 'var(--red)';
+
+    return `<div style="background:var(--bg3);border:1px solid var(--border);border-left:4px solid ${bordCor};border-radius:10px;padding:16px;margin-bottom:10px">
+      <!-- Header -->
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div style="font-size:10px;color:var(--muted)">${data}</div>
+        <span style="font-size:11px;font-weight:700;color:${estadoCor}">${estadoTxt}</span>
+      </div>
+      <!-- Jogo -->
+      <div style="font-size:13px;font-weight:700;margin-bottom:3px">${b.jogo||'—'}</div>
+      <div style="font-size:11px;color:var(--gold);margin-bottom:12px">▶ ${b.detalhe||'—'}</div>
+      <!-- Valores -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+        <div style="background:var(--bg4);border-radius:7px;padding:8px;text-align:center">
+          <div style="font-size:9px;color:var(--muted);margin-bottom:3px">APOSTADO</div>
+          <div style="font-size:13px;font-weight:700">${val.toLocaleString('pt-AO')} Kz</div>
+        </div>
+        <div style="background:var(--bg4);border-radius:7px;padding:8px;text-align:center">
+          <div style="font-size:9px;color:var(--muted);margin-bottom:3px">ODD</div>
+          <div style="font-size:13px;font-weight:700;color:var(--gold)">${odd.toFixed(2)}x</div>
+        </div>
+        <div style="background:var(--bg4);border-radius:7px;padding:8px;text-align:center;border:1px solid ${isPend?'rgba(0,230,118,0.2)':isGanhou?'rgba(0,230,118,0.3)':'rgba(255,61,87,0.2)'}">
+          <div style="font-size:9px;color:var(--muted);margin-bottom:3px">${isPend?'GANHO POT.':isGanhou?'GANHO REAL':'PERDIDO'}</div>
+          <div style="font-size:13px;font-weight:800;color:${isPend?'var(--green)':isGanhou?'var(--green)':'var(--red)'}">${isPend?ganhoP.toLocaleString('pt-AO'):isGanhou?'+'+ganhoR.toLocaleString('pt-AO'):'-'+val.toLocaleString('pt-AO')} Kz</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
 function switchAccTab(tab){
   ['tx','bets','pend'].forEach(t=>{
     const panel=document.getElementById('accpanel-'+t);
@@ -1689,6 +1804,7 @@ function goPage(name,navEl){
   if(name==='livecasino') renderGames('livecasino-games',LIVE_C);
   if(name==='poker') renderGames('poker-games',POKER_G);
   if(name==='account') renderAccount();
+  if(name==='mybets') renderMyBets();
   if(name==='withdraw') document.getElementById('wdBal').textContent=getBal().toLocaleString('pt-AO')+' Kz';
 }
 
