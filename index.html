@@ -592,15 +592,38 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;font
         <div class="stat-card"><div class="stat-val" id="acc-n">0</div><div class="stat-lbl">Apostas</div></div>
       </div>
       <div class="sec-title" style="font-size:14px;margin-bottom:9px">💰 Histórico de Transações</div>
-      <div class="table-wrap"><table>
-        <thead><tr><th>Data</th><th>Tipo</th><th>Método</th><th>Valor</th><th>Estado</th></tr></thead>
-        <tbody id="tx-tbody"><tr><td colspan="5" style="text-align:center;color:var(--muted);padding:18px">Sem transações ainda.</td></tr></tbody>
-      </table></div>
-      <div class="sec-title" style="font-size:14px;margin-bottom:9px">🎯 Histórico de Apostas</div>
-      <div class="table-wrap"><table>
-        <thead><tr><th>Jogo / Evento</th><th>Detalhe</th><th>Resultado</th><th>Ganho/Perda</th></tr></thead>
-        <tbody id="bet-tbody"><tr><td colspan="4" style="text-align:center;color:var(--muted);padding:18px">Sem apostas ainda.</td></tr></tbody>
-      </table></div>
+      <!-- TABS -->
+      <div style="display:flex;gap:0;background:var(--bg3);border-radius:10px;padding:3px;margin-bottom:14px">
+        <div id="tab-tx" onclick="switchAccTab('tx')" style="flex:1;text-align:center;padding:8px;border-radius:7px;cursor:pointer;font-size:12px;font-weight:700;background:var(--bg2);color:var(--text)">💳 Transações</div>
+        <div id="tab-bets" onclick="switchAccTab('bets')" style="flex:1;text-align:center;padding:8px;border-radius:7px;cursor:pointer;font-size:12px;font-weight:700;color:var(--muted)">🎯 Apostas</div>
+        <div id="tab-pend" onclick="switchAccTab('pend')" style="flex:1;text-align:center;padding:8px;border-radius:7px;cursor:pointer;font-size:12px;font-weight:700;color:var(--muted)">⏳ Em Curso</div>
+      </div>
+      <!-- TAB TX -->
+      <div id="accpanel-tx">
+        <div class="table-wrap"><table>
+          <thead><tr><th>Data</th><th>Tipo</th><th>Método</th><th>Valor</th><th>Estado</th></tr></thead>
+          <tbody id="tx-tbody"><tr><td colspan="5" style="text-align:center;color:var(--muted);padding:18px">⏳ A carregar...</td></tr></tbody>
+        </table></div>
+      </div>
+      <!-- TAB APOSTAS -->
+      <div id="accpanel-bets" style="display:none">
+        <div style="display:flex;gap:7px;margin-bottom:10px;flex-wrap:wrap">
+          <button onclick="filterBets('all')" id="bf-all" class="btn btn-gold btn-sm">Todas</button>
+          <button onclick="filterBets('ganhou')" id="bf-ganhou" class="btn btn-outline btn-sm">✅ Ganhas</button>
+          <button onclick="filterBets('perdeu')" id="bf-perdeu" class="btn btn-outline btn-sm">❌ Perdidas</button>
+        </div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Data</th><th>Jogo</th><th>Odd</th><th>Aposta</th><th>Resultado</th><th>Retorno</th></tr></thead>
+          <tbody id="bet-tbody"><tr><td colspan="6" style="text-align:center;color:var(--muted);padding:18px">⏳ A carregar...</td></tr></tbody>
+        </table></div>
+      </div>
+      <!-- TAB EM CURSO -->
+      <div id="accpanel-pend" style="display:none">
+        <div class="table-wrap"><table>
+          <thead><tr><th>Data</th><th>Jogo / Seleções</th><th>Odd Total</th><th>Apostado</th><th>Ganho Pot.</th><th>Estado</th></tr></thead>
+          <tbody id="pend-tbody"><tr><td colspan="6" style="text-align:center;color:var(--muted);padding:18px">⏳ A carregar...</td></tr></tbody>
+        </table></div>
+      </div>
     </div>
 
   </div><!-- /content -->
@@ -771,11 +794,13 @@ async function getFootball(path) {
   try {
     const url = `/api/football?path=${encodeURIComponent(path)}`;
     const r = await fetch(url, {signal: AbortSignal.timeout(10000)});
-    if(!r.ok){ console.warn('Football API HTTP', r.status); return []; }
+    if(!r.ok) return [];
     const d = await r.json();
-    if(d.errors && Object.keys(d.errors).length){ console.warn('Football API errors:', d.errors); }
-    return d?.response || [];
-  } catch(e){ console.warn('Football API falhou:', e.message); return []; }
+    // API de futebol retorna erros no plano gratuito — ignorar silenciosamente
+    if(d.errors && Object.keys(d.errors).length > 0) return [];
+    if(!d.response || !Array.isArray(d.response)) return [];
+    return d.response;
+  } catch(e){ return []; }
 }
 
 // ============================================================
@@ -1465,52 +1490,95 @@ function updateUI(){
   }
 }
 
+let _allBets = [];
+function switchAccTab(tab){
+  ['tx','bets','pend'].forEach(t=>{
+    const panel=document.getElementById('accpanel-'+t);
+    const tabEl=document.getElementById('tab-'+t);
+    if(panel) panel.style.display = t===tab?'block':'none';
+    if(tabEl){ tabEl.style.background=t===tab?'var(--bg2)':'transparent'; tabEl.style.color=t===tab?'var(--text)':'var(--muted)'; }
+  });
+}
+
+function filterBets(res){
+  ['all','ganhou','perdeu'].forEach(r=>{ const el=document.getElementById('bf-'+r); if(el){ el.className='btn btn-sm '+(r===res?'btn-gold':'btn-outline'); } });
+  const bets = res==='all' ? _allBets : _allBets.filter(b=>b.resultado===res);
+  renderBetRows(bets);
+}
+
+function renderBetRows(bets){
+  document.getElementById('bet-tbody').innerHTML = bets.length ? bets.map(b=>{
+    const ganhou=b.resultado==='ganhou';
+    const perdeu=b.resultado==='perdeu';
+    const pend=!ganhou&&!perdeu;
+    const val=parseFloat(b.valor_apostado||0);
+    const ganhoReal=parseFloat(b.ganho_real||0);
+    const ganhoP=parseFloat(b.ganho_potencial||0);
+    const data=b.criado_em?new Date(b.criado_em).toLocaleDateString('pt-AO',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'—';
+    const badgeCls=ganhou?'bg':perdeu?'br':'by';
+    const badgeTxt=ganhou?'✅ Ganhou':perdeu?'❌ Perdeu':'⏳ Pendente';
+    const retorno=ganhou?`<span style="color:var(--green);font-weight:700">+${ganhoReal.toLocaleString('pt-AO')} Kz</span>`:perdeu?`<span style="color:var(--red);font-weight:700">-${val.toLocaleString('pt-AO')} Kz</span>`:`<span style="color:var(--gold)">${ganhoP.toLocaleString('pt-AO')} Kz</span>`;
+    return `<tr>
+      <td style="font-size:10px;white-space:nowrap">${data}</td>
+      <td style="max-width:150px"><div style="font-size:11px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${b.jogo||'—'}</div><div style="font-size:10px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${b.detalhe||''}</div></td>
+      <td style="color:var(--gold);font-weight:700">${parseFloat(b.odd_total||0).toFixed(2)}x</td>
+      <td style="font-weight:600">${val.toLocaleString('pt-AO')} Kz</td>
+      <td><span class="badge ${badgeCls}">${badgeTxt}</span></td>
+      <td>${retorno}</td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:18px">Sem apostas.</td></tr>';
+}
+
 async function renderAccount(){
   if(!currentUser) return;
   document.getElementById('acc-bal').textContent=getBal().toLocaleString('pt-AO')+' Kz';
-  // Mostrar loading
-  document.getElementById('tx-tbody').innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:16px">⏳ A carregar...</td></tr>';
-  document.getElementById('bet-tbody').innerHTML='<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:16px">⏳ A carregar...</td></tr>';
-  // Carregar do Supabase
   await loadUserHistory();
   const txs=getTx();
   const bets=getBets();
-  // Stats calculadas do servidor
+  _allBets = bets;
+
+  // Stats
   const totalApostado=bets.reduce((s,b)=>s+parseFloat(b.valor_apostado||0),0);
   const totalGanho=bets.filter(b=>b.resultado==='ganhou').reduce((s,b)=>s+parseFloat(b.ganho_real||0),0);
-  const numApostas=bets.length;
   try{ document.getElementById('acc-ganho').textContent=totalGanho.toLocaleString('pt-AO')+' Kz'; }catch(e){}
   try{ document.getElementById('acc-ap').textContent=totalApostado.toLocaleString('pt-AO')+' Kz'; }catch(e){}
-  try{ document.getElementById('acc-n').textContent=numApostas; }catch(e){}
+  try{ document.getElementById('acc-n').textContent=bets.length; }catch(e){}
+
   // Transações
   document.getElementById('tx-tbody').innerHTML=txs.length?txs.map(t=>{
     const v=parseFloat(t.valor||0);
-    const isPos=['deposito','ajuste'].includes(t.tipo)||t.resultado==='ganhou';
+    const isPos=['deposito','ajuste'].includes(t.tipo);
     const cor=isPos?'var(--green)':'var(--red)';
-    const sinal=isPos?'+':'-';
     const data=t.criado_em?new Date(t.criado_em).toLocaleDateString('pt-AO',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'}):'—';
     const estadoC={'aprovado':'bg','pendente':'by','rejeitado':'br'}[t.estado]||'bb';
+    const tipos={deposito:'💳 Depósito',levantamento:'💸 Levantamento',ajuste:'⚙️ Ajuste',aposta:'🎯 Aposta'};
     return `<tr>
-      <td style="font-size:11px">${data}</td>
-      <td style="text-transform:capitalize">${t.tipo||'—'}</td>
-      <td>${t.metodo||'—'}</td>
-      <td style="color:${cor};font-weight:700">${sinal}${v.toLocaleString('pt-AO')} Kz</td>
+      <td style="font-size:10px;white-space:nowrap">${data}</td>
+      <td>${tipos[t.tipo]||t.tipo||'—'}</td>
+      <td style="font-size:11px">${t.metodo||'—'}</td>
+      <td style="color:${cor};font-weight:700">${isPos?'+':'-'}${v.toLocaleString('pt-AO')} Kz</td>
       <td><span class="badge ${estadoC}">${t.estado||'—'}</span></td>
     </tr>`;
-  }).join(''):'<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:16px">Sem transações ainda.</td></tr>';
+  }).join(''):'<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:18px">Sem transações.</td></tr>';
+
   // Apostas
-  document.getElementById('bet-tbody').innerHTML=bets.length?bets.map(b=>{
-    const ganhou=b.resultado==='ganhou';
-    const ganhoReal=parseFloat(b.ganho_real||0);
-    const apostado=parseFloat(b.valor_apostado||0);
-    const data=b.criado_em?new Date(b.criado_em).toLocaleDateString('pt-AO',{day:'2-digit',month:'2-digit',year:'2-digit'}):'—';
+  renderBetRows(bets);
+
+  // Pendentes
+  const pendentes=bets.filter(b=>b.resultado==='pendente'||!b.resultado);
+  document.getElementById('pend-tbody').innerHTML=pendentes.length?pendentes.map(b=>{
+    const val=parseFloat(b.valor_apostado||0);
+    const ganhoP=parseFloat(b.ganho_potencial||0);
+    const data=b.criado_em?new Date(b.criado_em).toLocaleDateString('pt-AO',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'—';
     return `<tr>
-      <td style="font-size:11px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${b.jogo||''}">${b.jogo||'—'}</td>
-      <td style="font-size:10px;color:var(--muted);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${b.detalhe||'—'}</td>
-      <td><span class="badge ${ganhou?'bg':'br'}">${ganhou?'✅ Ganhou':'❌ Perdeu'}</span></td>
-      <td style="color:${ganhou?'var(--green)':'var(--red)'};font-weight:700">${ganhou?'+'+ganhoReal.toLocaleString('pt-AO'):'-'+apostado.toLocaleString('pt-AO')} Kz</td>
+      <td style="font-size:10px">${data}</td>
+      <td><div style="font-size:11px;font-weight:600">${b.jogo||'—'}</div><div style="font-size:10px;color:var(--muted)">${b.detalhe||''}</div></td>
+      <td style="color:var(--gold);font-weight:700">${parseFloat(b.odd_total||0).toFixed(2)}x</td>
+      <td style="font-weight:600">${val.toLocaleString('pt-AO')} Kz</td>
+      <td style="color:var(--green);font-weight:700">${ganhoP.toLocaleString('pt-AO')} Kz</td>
+      <td><span class="badge by">⏳ Em Curso</span></td>
     </tr>`;
-  }).join(''):'<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:16px">Sem apostas ainda.</td></tr>';
+  }).join(''):'<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:18px">Sem apostas em curso.</td></tr>';
 }
 
 // ============================================================
