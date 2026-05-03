@@ -15,6 +15,7 @@
     { "src": "/api/odds(.*)", "dest": "/api/odds.js" },
     { "src": "/api/deposito(.*)", "dest": "/api/deposito.js" },
     { "src": "/api/resolver(.*)", "dest": "/api/resolver.js" },
+    { "src": "/api/betting(.*)", "dest": "/api/betting.js" },
     { "src": "/manifest.json", "dest": "/manifest.json" },
     { "src": "/sw.js", "dest": "/sw.js" },
     { "src": "/admin", "dest": "/admin/index.html" },
