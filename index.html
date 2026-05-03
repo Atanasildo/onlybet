@@ -725,10 +725,26 @@ async function syncSaldo(){
 }
 function getStats(){ return DB.get('st_'+currentUser?.id)||{g:0,a:0,n:0}; }
 function saveSt(s){ DB.set('st_'+currentUser?.id,s); }
-function getTx(){ return DB.get('tx_'+currentUser?.id)||[]; }
-function saveTx(a){ DB.set('tx_'+currentUser?.id,a); }
-function getBets(){ return DB.get('bets_'+currentUser?.id)||[]; }
-function saveBets(a){ DB.set('bets_'+currentUser?.id,a); }
+
+// Histórico vem SEMPRE do Supabase (não localStorage)
+let _txCache=[], _betsCache=[];
+async function loadUserHistory(){
+  if(!currentUser) return;
+  try{
+    const [rt, rb] = await Promise.all([
+      fetch(`/api/transacoes?action=historico&user_id=${currentUser.id}`),
+      fetch(`/api/transacoes?action=apostas_user&user_id=${currentUser.id}`)
+    ]);
+    _txCache = rt.ok ? (await rt.json()) : [];
+    _betsCache = rb.ok ? (await rb.json()) : [];
+    if(!Array.isArray(_txCache)) _txCache=[];
+    if(!Array.isArray(_betsCache)) _betsCache=[];
+  }catch(e){ _txCache=[]; _betsCache=[]; }
+}
+function getTx(){ return _txCache; }
+function getBets(){ return _betsCache; }
+function saveTx(a){ _txCache=a; }
+function saveBets(a){ _betsCache=a; }
 
 // ============================================================
 // FETCH APIs — com fallback inteligente
@@ -742,34 +758,32 @@ async function apiFetch(url, headers={}) {
 }
 
 async function getOdds(sport) {
-  if(IS_NETLIFY) {
-    const d = await apiFetch(`/api/odds?sport=${sport}`);
-    return d || [];
-  } else {
-    // CORS proxy público para testes locais
-    const url = `https://api.the-odds-api.com/v4/sports/${sport}/odds/?apiKey=${ODDS_KEY}&regions=eu&markets=h2h,totals&oddsFormat=decimal&dateFormat=iso`;
-    const d = await apiFetch(url);
-    return d || [];
-  }
+  try {
+    const r = await fetch(`/api/odds?sport=${sport}`, {signal: AbortSignal.timeout(10000)});
+    if(!r.ok){ console.warn('Odds API HTTP', r.status, sport); return []; }
+    const d = await r.json();
+    if(d.message){ console.warn('Odds API msg:', d.message); return []; }
+    return Array.isArray(d) ? d : [];
+  } catch(e){ console.warn('Odds API falhou:', sport, e.message); return []; }
 }
 
 async function getFootball(path) {
-  if(IS_NETLIFY) {
-    const d = await apiFetch(`/api/football?path=${encodeURIComponent(path)}`);
+  try {
+    const url = `/api/football?path=${encodeURIComponent(path)}`;
+    const r = await fetch(url, {signal: AbortSignal.timeout(10000)});
+    if(!r.ok){ console.warn('Football API HTTP', r.status); return []; }
+    const d = await r.json();
+    if(d.errors && Object.keys(d.errors).length){ console.warn('Football API errors:', d.errors); }
     return d?.response || [];
-  } else {
-    const url = `https://v3.football.api-sports.io/${path}`;
-    const d = await apiFetch(url, {'x-apisports-key': FOOTBALL_KEY});
-    return d?.response || [];
-  }
+  } catch(e){ console.warn('Football API falhou:', e.message); return []; }
 }
 
 // ============================================================
 // LOAD ALL DATA
 // ============================================================
 async function loadAllData() {
-  setApiStatus('live', 'loading', 'A carregar dados ao vivo...');
-  setApiStatus('sports', 'loading', 'A carregar próximos jogos...');
+  setApiStatus('live', 'loading', '⏳ A carregar dados ao vivo...');
+  setApiStatus('sports', 'loading', '⏳ A carregar próximos jogos...');
 
   // Carregar em paralelo
   const [liveFixtures, todayFixtures, eplOdds, laligaOdds, bundesOdds, champOdds, nbaOdds] = await Promise.all([
@@ -1138,14 +1152,53 @@ async function placeBet(){
   const payout=stake*tot;
   const jogo=betslip.map(b=>b.matchName).join(' + ');
   const detalhe=betslip.map(b=>`${b.pick} @ ${b.odd.toFixed(2)}`).join(' · ');
+  // Antifraude cliente
+  const fc = window.OBFraud ? window.OBFraud.canBet(stake) : {ok:true};
+  if(!fc.ok){ notify(fc.msg,'err'); return; }
+  const btn=document.querySelector('[onclick="placeBet()"]');
+  if(btn){ btn.disabled=true; btn.textContent='A processar...'; }
   try {
-    const r=await fetch('/api/transacoes?action=aposta',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:currentUser.id,jogo,detalhe,valor_apostado:stake,odd_total:tot.toFixed(2),ganho_potencial:payout,resultado:'pendente'})});
+    const r=await fetch('/api/transacoes?action=aposta',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:currentUser.id,jogo,detalhe,valor_apostado:stake,odd_total:tot.toFixed(2),ganho_potencial:payout})});
     const d=await r.json();
+    if(btn){ btn.disabled=false; btn.textContent='Confirmar Aposta'; }
     if(!d.ok){ notify(d.error||'Erro ao registar aposta','err'); return; }
     currentUser.saldo=d.saldo_novo; DB.set('session',currentUser);
-    updateUI(); betslip=[]; renderBS(); document.getElementById('betslip').classList.remove('open');
-    notify(`✅ Aposta de ${stake.toLocaleString('pt-AO')} Kz registada! Odd total: ${tot.toFixed(2)}`,'ok');
-  } catch(e){ notify('Erro de ligação. Tenta novamente.','err'); }
+    updateUI(); betslip=[]; renderBS();
+    try{ document.getElementById('betslip').classList.remove('open'); }catch(e){}
+    // Mostrar resultado com destaque
+    if(d.resultado==='ganhou'){
+      notify(`🎉 GANHOU! +${d.ganho_real.toLocaleString('pt-AO')} Kz  (Odd ${tot.toFixed(2)}x)`,'ok');
+      showBetResult(true, d.ganho_real, stake);
+    } else {
+      notify(`❌ Perdeu. -${stake.toLocaleString('pt-AO')} Kz  (Odd ${tot.toFixed(2)}x)`,'err');
+      showBetResult(false, 0, stake);
+    }
+    // Actualizar histórico em cache
+    await loadUserHistory();
+  } catch(e){
+    if(btn){ btn.disabled=false; btn.textContent='Confirmar Aposta'; }
+    notify('Erro de ligação. Tenta novamente.','err');
+  }
+}
+
+function showBetResult(ganhou, ganho, stake){
+  // Overlay de resultado da aposta
+  let ov = document.getElementById('betResultOv');
+  if(!ov){
+    ov = document.createElement('div');
+    ov.id = 'betResultOv';
+    ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:900;display:flex;align-items:center;justify-content:center;';
+    ov.addEventListener('click', ()=>ov.remove());
+    document.body.appendChild(ov);
+  }
+  ov.innerHTML = `<div style="background:var(--bg2);border:2px solid ${ganhou?'var(--green)':'var(--red)'};border-radius:18px;padding:36px 40px;text-align:center;max-width:320px">
+    <div style="font-size:52px">${ganhou?'🎉':'😔'}</div>
+    <div style="font-size:22px;font-weight:800;margin:12px 0;color:${ganhou?'var(--green)':'var(--red)'}">${ganhou?'GANHOU!':'PERDEU'}</div>
+    <div style="font-size:28px;font-weight:900;color:${ganhou?'var(--green)':'var(--red)'}">${ganhou?'+'+ganho.toLocaleString('pt-AO'):'-'+stake.toLocaleString('pt-AO')} Kz</div>
+    <div style="color:var(--muted);font-size:12px;margin-top:8px">Clica para fechar</div>
+  </div>`;
+  ov.style.display='flex';
+  setTimeout(()=>ov.remove(), 5000);
 }
 
 // ============================================================
@@ -1412,25 +1465,52 @@ function updateUI(){
   }
 }
 
-function renderAccount(){
+async function renderAccount(){
   if(!currentUser) return;
-  const s=getStats();
   document.getElementById('acc-bal').textContent=getBal().toLocaleString('pt-AO')+' Kz';
-  document.getElementById('acc-ganho').textContent=s.g.toLocaleString('pt-AO')+' Kz';
-  document.getElementById('acc-ap').textContent=s.a.toLocaleString('pt-AO')+' Kz';
-  document.getElementById('acc-n').textContent=s.n;
+  // Mostrar loading
+  document.getElementById('tx-tbody').innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:16px">⏳ A carregar...</td></tr>';
+  document.getElementById('bet-tbody').innerHTML='<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:16px">⏳ A carregar...</td></tr>';
+  // Carregar do Supabase
+  await loadUserHistory();
   const txs=getTx();
-  document.getElementById('tx-tbody').innerHTML=txs.length?txs.map(t=>`<tr>
-    <td>${t.data}</td><td>${t.tipo}</td><td>${t.metodo}</td>
-    <td style="color:${t.valor.startsWith('+')?'var(--green)':'var(--red)'};font-weight:700">${t.valor}</td>
-    <td><span class="badge ${t.estado==='Aprovado'?'bw':'bp'}">${t.estado}</span></td>
-  </tr>`).join(''):'<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:16px">Sem transações.</td></tr>';
   const bets=getBets();
-  document.getElementById('bet-tbody').innerHTML=bets.length?bets.map(b=>`<tr>
-    <td>${b.jogo}</td><td style="font-size:10px;color:var(--muted)">${b.det}</td>
-    <td><span class="badge ${b.res==='Ganhou'?'bw':'bl'}">${b.res}</span></td>
-    <td style="color:${b.amt>=0?'var(--green)':'var(--red)'};font-weight:700">${b.amt>=0?'+':''}${Math.abs(b.amt).toLocaleString('pt-AO')} Kz</td>
-  </tr>`).join(''):'<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:16px">Sem apostas.</td></tr>';
+  // Stats calculadas do servidor
+  const totalApostado=bets.reduce((s,b)=>s+parseFloat(b.valor_apostado||0),0);
+  const totalGanho=bets.filter(b=>b.resultado==='ganhou').reduce((s,b)=>s+parseFloat(b.ganho_real||0),0);
+  const numApostas=bets.length;
+  try{ document.getElementById('acc-ganho').textContent=totalGanho.toLocaleString('pt-AO')+' Kz'; }catch(e){}
+  try{ document.getElementById('acc-ap').textContent=totalApostado.toLocaleString('pt-AO')+' Kz'; }catch(e){}
+  try{ document.getElementById('acc-n').textContent=numApostas; }catch(e){}
+  // Transações
+  document.getElementById('tx-tbody').innerHTML=txs.length?txs.map(t=>{
+    const v=parseFloat(t.valor||0);
+    const isPos=['deposito','ajuste'].includes(t.tipo)||t.resultado==='ganhou';
+    const cor=isPos?'var(--green)':'var(--red)';
+    const sinal=isPos?'+':'-';
+    const data=t.criado_em?new Date(t.criado_em).toLocaleDateString('pt-AO',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'}):'—';
+    const estadoC={'aprovado':'bg','pendente':'by','rejeitado':'br'}[t.estado]||'bb';
+    return `<tr>
+      <td style="font-size:11px">${data}</td>
+      <td style="text-transform:capitalize">${t.tipo||'—'}</td>
+      <td>${t.metodo||'—'}</td>
+      <td style="color:${cor};font-weight:700">${sinal}${v.toLocaleString('pt-AO')} Kz</td>
+      <td><span class="badge ${estadoC}">${t.estado||'—'}</span></td>
+    </tr>`;
+  }).join(''):'<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:16px">Sem transações ainda.</td></tr>';
+  // Apostas
+  document.getElementById('bet-tbody').innerHTML=bets.length?bets.map(b=>{
+    const ganhou=b.resultado==='ganhou';
+    const ganhoReal=parseFloat(b.ganho_real||0);
+    const apostado=parseFloat(b.valor_apostado||0);
+    const data=b.criado_em?new Date(b.criado_em).toLocaleDateString('pt-AO',{day:'2-digit',month:'2-digit',year:'2-digit'}):'—';
+    return `<tr>
+      <td style="font-size:11px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${b.jogo||''}">${b.jogo||'—'}</td>
+      <td style="font-size:10px;color:var(--muted);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${b.detalhe||'—'}</td>
+      <td><span class="badge ${ganhou?'bg':'br'}">${ganhou?'✅ Ganhou':'❌ Perdeu'}</span></td>
+      <td style="color:${ganhou?'var(--green)':'var(--red)'};font-weight:700">${ganhou?'+'+ganhoReal.toLocaleString('pt-AO'):'-'+apostado.toLocaleString('pt-AO')} Kz</td>
+    </tr>`;
+  }).join(''):'<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:16px">Sem apostas ainda.</td></tr>';
 }
 
 // ============================================================
@@ -1538,7 +1618,7 @@ selMethod('unitel');
 renderHomeGames();
 updateUI();
 loadAllData();
-if(currentUser) syncSaldo();
+if(currentUser){ syncSaldo(); loadUserHistory(); }
 setInterval(()=>{
   if(document.getElementById('page-live').classList.contains('active')) loadAllData();
   if(currentUser) syncSaldo();
