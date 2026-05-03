@@ -321,8 +321,77 @@ module.exports = async (req, res) => {
 
   // ── APOSTAS ──────────────────────────────────────────────────
   if (action === 'apostas') {
-    const r = await sb('apostas?order=criado_em.desc&limit=100');
+    const { estado } = req.query;
+    let q = 'apostas?order=criado_em.desc&limit=100';
+    if (estado) q += `&resultado=eq.${estado}`;
+    const r = await sb(q);
     return res.json(await r.json());
+  }
+
+  // ── RESOLVER APOSTA (admin marca como ganhou/perdeu) ─────────
+  if (action === 'resolver_aposta' && req.method === 'POST') {
+    const { id, resultado } = req.body || {};
+    if (!id || !['ganhou', 'perdeu', 'cancelada'].includes(resultado))
+      return res.status(400).json({ error: 'Dados inválidos.' });
+
+    // Buscar aposta
+    const ar = await sb(`apostas?id=eq.${id}&limit=1`);
+    const aposta = (await ar.json())[0];
+    if (!aposta) return res.status(404).json({ error: 'Aposta não encontrada.' });
+    if (aposta.resultado !== 'pendente')
+      return res.status(409).json({ error: 'Aposta já foi resolvida.' });
+
+    const ganhoReal = resultado === 'ganhou' ? parseFloat(aposta.ganho_potencial || 0) : 0;
+
+    // Actualizar aposta
+    await sb(`apostas?id=eq.${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ resultado, ganho_real: ganhoReal })
+    });
+
+    // Creditar saldo se ganhou ou devolver se cancelada
+    if (resultado === 'ganhou' || resultado === 'cancelada') {
+      const valorDevolver = resultado === 'ganhou' ? ganhoReal : parseFloat(aposta.valor_apostado || 0);
+      const ur = await sb(`utilizadores?id=eq.${aposta.user_id}&select=saldo&limit=1`);
+      const u = (await ur.json())[0];
+      const novoSaldo = parseFloat(u?.saldo || 0) + valorDevolver;
+      await sb(`utilizadores?id=eq.${aposta.user_id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ saldo: novoSaldo })
+      });
+
+      const msgs = {
+        ganhou: `🎉 Parabéns! A tua aposta em "${aposta.jogo}" ganhou! Recebeste ${ganhoReal.toLocaleString('pt-AO')} Kz.`,
+        cancelada: `ℹ️ A tua aposta em "${aposta.jogo}" foi cancelada. O valor de ${parseFloat(aposta.valor_apostado).toLocaleString('pt-AO')} Kz foi devolvido.`
+      };
+      await sb('notificacoes', {
+        method: 'POST',
+        body: JSON.stringify({
+          user_id: aposta.user_id,
+          titulo: resultado === 'ganhou' ? '🎉 Aposta Ganha!' : 'ℹ️ Aposta Cancelada',
+          mensagem: msgs[resultado],
+          tipo: resultado === 'ganhou' ? 'sucesso' : 'info'
+        })
+      }).catch(() => {});
+    } else {
+      // Perdeu — apenas notificar
+      await sb('notificacoes', {
+        method: 'POST',
+        body: JSON.stringify({
+          user_id: aposta.user_id,
+          titulo: '❌ Aposta Perdida',
+          mensagem: `A tua aposta em "${aposta.jogo}" não foi bem sucedida.`,
+          tipo: 'erro'
+        })
+      }).catch(() => {});
+    }
+
+    await sb('admin_logs', {
+      method: 'POST',
+      body: JSON.stringify({ admin: ADMIN_EMAIL, accao: 'Aposta Resolvida', detalhe: `id: ${id} · ${resultado} · ${ganhoReal} Kz` })
+    }).catch(() => {});
+
+    return res.json({ ok: true, resultado, ganho_real: ganhoReal });
   }
 
   // ── LOGS ─────────────────────────────────────────────────────
