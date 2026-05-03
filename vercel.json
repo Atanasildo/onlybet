@@ -15,17 +15,32 @@
     { "src": "/api/odds(.*)", "dest": "/api/odds.js" },
     { "src": "/api/deposito(.*)", "dest": "/api/deposito.js" },
     { "src": "/api/resolver(.*)", "dest": "/api/resolver.js" },
-    { "src": "/api/betting(.*)", "dest": "/api/betting.js" },
     { "src": "/manifest.json", "dest": "/manifest.json" },
     { "src": "/sw.js", "dest": "/sw.js" },
     { "src": "/admin", "dest": "/admin/index.html" },
     { "src": "/admin/", "dest": "/admin/index.html" },
     { "src": "/(.*)", "dest": "/index.html" }
   ],
+  "env": {
+    "SUPABASE_URL": "@supabase_url",
+    "SUPABASE_SECRET": "@supabase_secret",
+    "TOKEN_SECRET": "@token_secret",
+    "ADMIN_PASS": "@admin_pass",
+    "ADMIN_EMAIL": "@admin_email",
+    "FOOTBALL_API_KEY": "@football_api_key",
+    "ODDS_API_KEY": "@odds_api_key",
+    "CRON_SECRET": "@cron_secret",
+    "CONTA_PAGAMENTO": "@conta_pagamento",
+    "ALLOWED_ORIGIN": "@allowed_origin"
+  },
   "headers": [
     {
       "source": "/index.html",
-      "headers": [{ "key": "Cache-Control", "value": "no-store, no-cache, must-revalidate" }]
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store, no-cache, must-revalidate" },
+        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" }
+      ]
     },
     {
       "source": "/sw.js",
@@ -33,7 +48,10 @@
     },
     {
       "source": "/api/(.*)",
-      "headers": [{ "key": "Cache-Control", "value": "no-store" }]
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" }
+      ]
     }
   ]
 }
