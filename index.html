@@ -391,6 +391,12 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;font
 }
 
 </style>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#f0b429">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="OnlyBet">
 </head>
 <body>
 
@@ -409,6 +415,9 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;font
   <div class="nav-item" onclick="goPage('livecasino',this)"><span class="nav-icon">📡</span>Casino ao Vivo<span class="nbadge live">LIVE</span></div>
   <div class="nav-item" onclick="goPage('poker',this)"><span class="nav-icon">🃏</span>Poker & Blackjack</div>
   <div class="sec-lbl">Conta</div>
+  <div class="nav-item" onclick="goPage('bonus',this)"><span class="nav-icon">🎁</span>Bónus<span class="nbadge hot" style="font-size:9px;padding:1px 5px">NOVO</span></div>
+  <div class="nav-item" onclick="goPage('responsavel',this)"><span class="nav-icon">🛡️</span>Jogo Responsável</div>
+  <div class="nav-item" onclick="goPage('suporte',this)"><span class="nav-icon">💬</span>Suporte</div>
   <div class="nav-item" onclick="goPage('deposit',this)"><span class="nav-icon">💳</span>Depositar</div>
   <div class="nav-item" onclick="goPage('withdraw',this)"><span class="nav-icon">💸</span>Levantar</div>
   <div class="nav-item" onclick="goPage('promos',this)"><span class="nav-icon">🎁</span>Promoções</div>
@@ -665,6 +674,117 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;font
       <!-- LISTA DE APOSTAS -->
       <div id="mybets-list">
         <div style="text-align:center;padding:40px;color:var(--muted)">⏳ A carregar apostas...</div>
+      </div>
+    </div>
+
+
+    <!-- PÁGINA BÓNUS -->
+    <div class="page" id="page-bonus">
+      <div class="sec-title" style="margin-bottom:18px">🎁 Bónus e Promoções</div>
+      <div style="display:grid;gap:14px">
+        <div style="background:linear-gradient(135deg,var(--bg3),var(--bg4));border:1px solid rgba(240,180,41,0.3);border-radius:14px;padding:22px;position:relative;overflow:hidden">
+          <div style="position:absolute;top:-20px;right:-20px;font-size:80px;opacity:0.07">🎯</div>
+          <div style="font-size:11px;color:var(--gold);font-weight:700;letter-spacing:2px;margin-bottom:6px">BÓNUS DE BOAS-VINDAS</div>
+          <div style="font-size:26px;font-weight:900;margin-bottom:4px">100% até 5.000 Kz</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:16px">No teu primeiro depósito. Requisito de apostas: 5x o bónus.</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <div style="background:rgba(240,180,41,0.1);border:1px solid rgba(240,180,41,0.2);border-radius:7px;padding:6px 12px;font-size:11px"><span style="color:var(--gold)">✓</span> Depósito mín. 1.000 Kz</div>
+            <div style="background:rgba(240,180,41,0.1);border:1px solid rgba(240,180,41,0.2);border-radius:7px;padding:6px 12px;font-size:11px"><span style="color:var(--gold)">✓</span> Válido 30 dias</div>
+            <div style="background:rgba(240,180,41,0.1);border:1px solid rgba(240,180,41,0.2);border-radius:7px;padding:6px 12px;font-size:11px"><span style="color:var(--gold)">✓</span> Odds mín. 1.50</div>
+          </div>
+          <button onclick="goPage('deposit',document.querySelector('.nav-item[onclick*=deposit]'))" style="margin-top:16px;background:var(--gold);color:#000;border:none;border-radius:8px;padding:10px 24px;font-size:13px;font-weight:800;cursor:pointer">Depositar Agora</button>
+        </div>
+        <div style="background:linear-gradient(135deg,var(--bg3),var(--bg4));border:1px solid rgba(0,230,118,0.2);border-radius:14px;padding:22px;position:relative;overflow:hidden">
+          <div style="position:absolute;top:-20px;right:-20px;font-size:80px;opacity:0.07">💸</div>
+          <div style="font-size:11px;color:var(--green);font-weight:700;letter-spacing:2px;margin-bottom:6px">CASHBACK SEMANAL</div>
+          <div style="font-size:26px;font-weight:900;margin-bottom:4px">10% das perdas</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:16px">Recebe 10% de volta de todas as apostas perdidas na semana. Creditado todas as segundas-feiras.</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <div style="background:rgba(0,230,118,0.08);border:1px solid rgba(0,230,118,0.15);border-radius:7px;padding:6px 12px;font-size:11px"><span style="color:var(--green)">✓</span> Automático</div>
+            <div style="background:rgba(0,230,118,0.08);border:1px solid rgba(0,230,118,0.15);border-radius:7px;padding:6px 12px;font-size:11px"><span style="color:var(--green)">✓</span> Sem requisito</div>
+          </div>
+        </div>
+        <div style="background:linear-gradient(135deg,var(--bg3),var(--bg4));border:1px solid rgba(61,154,255,0.2);border-radius:14px;padding:22px;position:relative;overflow:hidden">
+          <div style="position:absolute;top:-20px;right:-20px;font-size:80px;opacity:0.07">👥</div>
+          <div style="font-size:11px;color:#3d9aff;font-weight:700;letter-spacing:2px;margin-bottom:6px">PROGRAMA DE REFERÊNCIA</div>
+          <div style="font-size:26px;font-weight:900;margin-bottom:4px">500 Kz por amigo</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:16px">Convida amigos e recebe 500 Kz por cada um que fizer o primeiro depósito.</div>
+          <div id="refLink" style="background:var(--bg4);border:1px solid var(--border);border-radius:7px;padding:9px 12px;font-size:11px;color:var(--muted);cursor:pointer" onclick="copiarRef()">
+            🔗 Clica para copiar o teu link de referência
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PÁGINA JOGO RESPONSÁVEL -->
+    <div class="page" id="page-responsavel">
+      <div class="sec-title" style="margin-bottom:18px">🛡️ Jogo Responsável</div>
+      <div style="background:rgba(240,180,41,0.05);border:1px solid rgba(240,180,41,0.15);border-radius:12px;padding:16px;margin-bottom:18px">
+        <div style="font-size:13px;font-weight:700;margin-bottom:6px">⚠️ O jogo deve ser uma diversão, não uma obrigação.</div>
+        <div style="font-size:12px;color:var(--muted)">Apostas para maiores de 18 anos. Se sentires que o jogo está a afectar a tua vida, pede ajuda.</div>
+      </div>
+      <div style="display:grid;gap:12px">
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:18px">
+          <div style="font-size:13px;font-weight:700;margin-bottom:12px">💰 Limite de Depósito Diário</div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:10px">Define um limite máximo de depósito por dia para controlar os teus gastos.</div>
+          <div style="display:flex;gap:8px">
+            <input type="number" id="limDep" placeholder="Ex: 5000" style="flex:1;background:var(--bg4);border:1px solid var(--border);border-radius:7px;padding:8px 12px;color:var(--text);font-size:13px">
+            <button onclick="setLimite('deposito')" style="background:var(--gold);color:#000;border:none;border-radius:7px;padding:8px 16px;font-size:12px;font-weight:700;cursor:pointer">Definir</button>
+          </div>
+        </div>
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:18px">
+          <div style="font-size:13px;font-weight:700;margin-bottom:12px">🎯 Limite de Apostas Diário</div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:10px">Limita o total que podes apostar por dia.</div>
+          <div style="display:flex;gap:8px">
+            <input type="number" id="limAp" placeholder="Ex: 10000" style="flex:1;background:var(--bg4);border:1px solid var(--border);border-radius:7px;padding:8px 12px;color:var(--text);font-size:13px">
+            <button onclick="setLimite('aposta')" style="background:var(--gold);color:#000;border:none;border-radius:7px;padding:8px 16px;font-size:12px;font-weight:700;cursor:pointer">Definir</button>
+          </div>
+        </div>
+        <div style="background:var(--bg3);border:1px solid rgba(255,61,87,0.2);border-radius:12px;padding:18px">
+          <div style="font-size:13px;font-weight:700;margin-bottom:6px;color:var(--red)">🚫 Auto-Exclusão</div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:12px">Suspende temporariamente a tua conta. Não poderás fazer login durante o período escolhido.</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button onclick="autoExclusao(7)" style="background:none;border:1px solid var(--red);color:var(--red);border-radius:7px;padding:7px 14px;font-size:11px;cursor:pointer">7 dias</button>
+            <button onclick="autoExclusao(30)" style="background:none;border:1px solid var(--red);color:var(--red);border-radius:7px;padding:7px 14px;font-size:11px;cursor:pointer">30 dias</button>
+            <button onclick="autoExclusao(90)" style="background:none;border:1px solid var(--red);color:var(--red);border-radius:7px;padding:7px 14px;font-size:11px;cursor:pointer">90 dias</button>
+            <button onclick="autoExclusao(365)" style="background:none;border:1px solid var(--red);color:var(--red);border-radius:7px;padding:7px 14px;font-size:11px;cursor:pointer">1 ano</button>
+          </div>
+        </div>
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:18px">
+          <div style="font-size:13px;font-weight:700;margin-bottom:8px">📞 Linhas de Apoio</div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.8">
+            🇦🇴 Angola — Linha de Saúde Mental: <strong style="color:var(--text)">142</strong><br>
+            📧 Email de suporte: <strong style="color:var(--gold)">suporte@onlybet.ao</strong><br>
+            💬 WhatsApp: <strong style="color:var(--text)">+244 976 036 278</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PÁGINA SUPORTE -->
+    <div class="page" id="page-suporte">
+      <div class="sec-title" style="margin-bottom:18px">💬 Suporte ao Cliente</div>
+      <div style="display:grid;gap:12px;margin-bottom:20px">
+        <a href="https://wa.me/244976036278" target="_blank" style="text-decoration:none;display:flex;align-items:center;gap:14px;background:rgba(37,211,102,0.08);border:1px solid rgba(37,211,102,0.25);border-radius:12px;padding:16px">
+          <div style="width:44px;height:44px;background:rgba(37,211,102,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">💬</div>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:#25d366">WhatsApp</div>
+            <div style="font-size:11px;color:var(--muted)">+244 976 036 278 · Resposta em minutos</div>
+          </div>
+          <div style="margin-left:auto;color:var(--muted)">→</div>
+        </a>
+        <a href="mailto:suporte@onlybet.ao" style="text-decoration:none;display:flex;align-items:center;gap:14px;background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:16px">
+          <div style="width:44px;height:44px;background:rgba(61,154,255,0.1);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">📧</div>
+          <div>
+            <div style="font-size:13px;font-weight:700">Email</div>
+            <div style="font-size:11px;color:var(--muted)">suporte@onlybet.ao · Resposta em 24h</div>
+          </div>
+          <div style="margin-left:auto;color:var(--muted)">→</div>
+        </a>
+      </div>
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:18px">
+        <div style="font-size:13px;font-weight:700;margin-bottom:14px">❓ Perguntas Frequentes</div>
+        <div style="display:grid;gap:8px" id="faqList"></div>
       </div>
     </div>
 
@@ -2014,6 +2134,123 @@ setInterval(()=>{
 
   console.log('✅ OnlyBet Mobile v2 activo');
 })();
+
+// ── BÓNUS ──────────────────────────────────────────────
+function copiarRef(){
+  if(!currentUser){ notify('Faz login primeiro','err'); return; }
+  const link = `${location.origin}?ref=${currentUser.id.slice(0,8)}`;
+  navigator.clipboard.writeText(link).then(()=>{
+    document.getElementById('refLink').textContent = '✅ Link copiado: ' + link;
+    notify('Link copiado!','ok');
+  }).catch(()=>{ document.getElementById('refLink').textContent = link; });
+}
+
+// ── JOGO RESPONSÁVEL ──────────────────────────────────
+function setLimite(tipo){
+  if(!currentUser){ notify('Faz login primeiro','err'); return; }
+  const val = parseFloat(document.getElementById(tipo==='deposito'?'limDep':'limAp').value);
+  if(isNaN(val)||val<500){ notify('Valor mínimo: 500 Kz','err'); return; }
+  const limites = JSON.parse(localStorage.getItem('ob_limites')||'{}');
+  limites[tipo] = { valor: val, definido: Date.now() };
+  localStorage.setItem('ob_limites', JSON.stringify(limites));
+  notify(`✅ Limite de ${tipo} definido: ${val.toLocaleString('pt-AO')} Kz/dia`,'ok');
+}
+
+function autoExclusao(dias){
+  if(!currentUser){ notify('Faz login primeiro','err'); return; }
+  if(!confirm(`Tens a certeza? A tua conta ficará suspensa por ${dias} dias. Não poderás fazer login.`)) return;
+  fetch('/api/auth?action=auto_exclusao', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ user_id: currentUser.id, dias })
+  }).then(r=>r.json()).then(d=>{
+    if(d.ok){
+      notify(`Conta suspensa por ${dias} dias. Cuida-te! 🛡️`,'info');
+      setTimeout(()=>{ DB.del('session'); location.reload(); }, 3000);
+    }
+  }).catch(()=>{ notify('Contacta o suporte para auto-exclusão','info'); });
+}
+
+// ── FAQ ───────────────────────────────────────────────
+const FAQS = [
+  { q:'Como faço um depósito?', r:'Vai a Depositar no menu, escolhe Unitel Money ou PayPay, transfere e confirma a referência.' },
+  { q:'Quanto tempo demora o depósito?', r:'Após confirmares a transferência, o admin aprova em 5-15 minutos.' },
+  { q:'Como levanto dinheiro?', r:'Vai a Levantar, indica o valor e o número. O pagamento é feito em até 15 minutos.' },
+  { q:'Onde vejo as minhas apostas?', r:'No menu lateral em "Minhas Apostas". Vês as pendentes, ganhas e perdidas.' },
+  { q:'Quando é que a aposta é resolvida?', r:'Automaticamente quando o jogo termina. Recebes uma notificação.' },
+  { q:'Posso cancelar uma aposta?', r:'Não é possível cancelar após confirmação. Planeamos adicionar Cash Out em breve.' },
+  { q:'O site é seguro?', r:'Sim. Usamos encriptação, tokens de sessão seguros e antifraude automático.' },
+];
+
+function renderFAQ(){
+  const el = document.getElementById('faqList');
+  if(!el) return;
+  el.innerHTML = FAQS.map((f,i)=>`
+    <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden">
+      <div onclick="toggleFAQ(${i})" style="padding:11px 14px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:600">
+        ${f.q}<span id="faq-arrow-${i}" style="color:var(--muted)">▼</span>
+      </div>
+      <div id="faq-ans-${i}" style="display:none;padding:0 14px 12px;font-size:11px;color:var(--muted);line-height:1.6">${f.r}</div>
+    </div>`).join('');
+}
+
+function toggleFAQ(i){
+  const ans = document.getElementById('faq-ans-'+i);
+  const arrow = document.getElementById('faq-arrow-'+i);
+  if(!ans) return;
+  const open = ans.style.display !== 'none';
+  ans.style.display = open ? 'none' : 'block';
+  if(arrow) arrow.textContent = open ? '▼' : '▲';
+}
+
+// Iniciar FAQ quando abre suporte
+const _origGoPage = typeof goPage === 'function' ? goPage : null;
+
+// ── PWA — Instalar app ────────────────────────────────
+let _deferredInstall = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  _deferredInstall = e;
+  // Mostrar botão instalar após 30s
+  setTimeout(()=>{
+    if(_deferredInstall) showInstallBanner();
+  }, 30000);
+});
+
+function showInstallBanner(){
+  if(document.getElementById('installBanner')) return;
+  const banner = document.createElement('div');
+  banner.id = 'installBanner';
+  banner.style.cssText = 'position:fixed;bottom:70px;left:12px;right:12px;background:var(--bg2);border:1px solid var(--gold);border-radius:12px;padding:14px 16px;z-index:800;display:flex;align-items:center;gap:12px;box-shadow:0 8px 24px rgba(0,0,0,0.4)';
+  banner.innerHTML = `
+    <div style="font-size:28px">📱</div>
+    <div style="flex:1">
+      <div style="font-size:12px;font-weight:700">Instalar OnlyBet</div>
+      <div style="font-size:10px;color:var(--muted)">Adiciona ao ecrã inicial para acesso rápido</div>
+    </div>
+    <button onclick="instalarApp()" style="background:var(--gold);color:#000;border:none;border-radius:7px;padding:7px 14px;font-size:11px;font-weight:700;cursor:pointer">Instalar</button>
+    <button onclick="document.getElementById('installBanner').remove()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px">✕</button>
+  `;
+  document.body.appendChild(banner);
+}
+
+async function instalarApp(){
+  if(!_deferredInstall) return;
+  _deferredInstall.prompt();
+  const { outcome } = await _deferredInstall.userChoice;
+  if(outcome === 'accepted') notify('✅ OnlyBet instalado!','ok');
+  _deferredInstall = null;
+  document.getElementById('installBanner')?.remove();
+}
+
+// Registar service worker
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('/sw.js').catch(()=>{});
+}
+
+// Init páginas novas quando navegadas
+document.addEventListener('DOMContentLoaded', ()=>{
+  renderFAQ();
+});
 </script>
 </body>
 </html>
