@@ -4,197 +4,324 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>OnlyBet Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
-:root{--gold:#f0b429;--green:#00e676;--red:#ff3d57;--blue:#3d9aff;--bg:#070b10;--bg2:#0d1320;--bg3:#111827;--bg4:#1a2235;--border:rgba(255,255,255,0.07);--text:#e8eaf0;--muted:rgba(232,234,240,0.45);}
+:root{
+  --gold:#f0b429;--gold2:#ffd166;--green:#06d6a0;--red:#ef4444;--blue:#3b82f6;--purple:#8b5cf6;--orange:#f97316;
+  --bg:#060a0f;--bg2:#0c1219;--bg3:#111c27;--bg4:#172232;
+  --border:rgba(240,180,41,0.12);--border2:rgba(255,255,255,0.06);
+  --text:#e8edf5;--muted:rgba(232,237,245,0.4);
+  --font-display:'Bebas Neue',sans-serif;--font-body:'Syne',sans-serif;--font-mono:'JetBrains Mono',monospace;
+  --sidebar:220px;
+}
 *{margin:0;padding:0;box-sizing:border-box;}
-body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;min-height:100vh;}
-a{color:inherit;text-decoration:none;}
+body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-size:14px;min-height:100vh;}
 
-/* LOGIN */
+/* ── BACKGROUND ── */
+body::before{content:'';position:fixed;inset:0;
+  background:radial-gradient(ellipse 60% 40% at 10% 10%,rgba(240,180,41,0.03) 0%,transparent 60%),
+  radial-gradient(ellipse 50% 40% at 90% 90%,rgba(59,130,246,0.03) 0%,transparent 60%);
+  pointer-events:none;z-index:0;}
+
+/* ── LOGIN ── */
 #loginPage{display:flex;align-items:center;justify-content:center;min-height:100vh;background:radial-gradient(ellipse at center,#0d1f3a 0%,var(--bg) 70%);}
-.login-box{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:40px 36px;width:360px;text-align:center;}
-.login-logo{font-size:32px;font-weight:900;color:#fff;letter-spacing:-1px;margin-bottom:4px;}
-.login-logo span{color:var(--gold);}
-.login-sub{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:28px;}
-.inp{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:11px 14px;color:var(--text);font-family:inherit;font-size:14px;outline:none;margin-bottom:12px;transition:border-color .15s;}
+.login-box{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:40px;width:380px;text-align:center;animation:loginIn .5s ease;}
+@keyframes loginIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+.login-logo{font-family:var(--font-display);font-size:36px;letter-spacing:4px;background:linear-gradient(135deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:6px;}
+.login-sub{font-size:10px;letter-spacing:4px;text-transform:uppercase;color:var(--muted);margin-bottom:32px;}
+.inp{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:12px 14px;color:var(--text);font-family:var(--font-body);font-size:14px;outline:none;margin-bottom:12px;transition:border-color .2s;}
 .inp:focus{border-color:var(--gold);}
-.btn{width:100%;padding:12px;border-radius:8px;border:none;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;transition:all .15s;}
-.btn-gold{background:var(--gold);color:#000;}
-.btn-gold:hover{background:#f7c84a;}
-.err-msg{color:var(--red);font-size:12px;margin-top:8px;}
+.btn-login{width:100%;padding:13px;border-radius:10px;border:none;font-family:var(--font-display);font-size:22px;letter-spacing:2px;cursor:pointer;background:linear-gradient(135deg,var(--gold),#e8a020);color:#000;transition:all .2s;}
+.btn-login:hover{box-shadow:0 6px 20px rgba(240,180,41,0.3);}
+.login-err{color:var(--red);font-size:13px;margin-top:8px;}
 
-/* LAYOUT */
+/* ── APP LAYOUT ── */
 #app{display:none;}
-.sidebar{position:fixed;top:0;left:0;bottom:0;width:210px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:100;overflow-y:auto;}
-.logo-wrap{padding:18px 16px 14px;border-bottom:1px solid var(--border);}
-.logo{font-size:22px;font-weight:900;color:#fff;}
-.logo span{color:var(--gold);}
-.logo-sub{font-size:9px;letter-spacing:3px;color:var(--muted);text-transform:uppercase;margin-top:2px;}
-.nav-section{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);padding:14px 16px 5px;font-weight:700;}
-.nav-item{display:flex;align-items:center;gap:9px;padding:9px 16px;color:var(--muted);cursor:pointer;border-left:3px solid transparent;transition:all .15s;font-size:13px;font-weight:500;}
+.sidebar{position:fixed;top:0;left:0;bottom:0;width:var(--sidebar);background:var(--bg2);border-right:1px solid var(--border2);display:flex;flex-direction:column;z-index:100;overflow-y:auto;}
+.logo-wrap{padding:20px 18px 16px;border-bottom:1px solid var(--border2);}
+.logo{font-family:var(--font-display);font-size:24px;letter-spacing:3px;background:linear-gradient(135deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.logo-sub{font-size:8px;letter-spacing:4px;color:var(--muted);text-transform:uppercase;margin-top:2px;}
+.nav-section{font-size:8px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);padding:16px 18px 5px;font-weight:700;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 18px;color:var(--muted);cursor:pointer;border-left:3px solid transparent;transition:all .15s;font-size:13px;font-weight:600;}
 .nav-item:hover{color:var(--text);background:rgba(255,255,255,0.03);}
-.nav-item.active{color:var(--gold);border-left-color:var(--gold);background:rgba(240,180,41,0.07);}
-.nav-icon{font-size:15px;width:18px;text-align:center;}
-.badge{margin-left:auto;padding:2px 7px;border-radius:8px;font-size:9px;font-weight:800;background:var(--red);color:#fff;}
-.sidebar-bot{margin-top:auto;padding:12px;border-top:1px solid var(--border);}
-.main{margin-left:210px;min-height:100vh;padding:24px;}
-.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;}
-.page-title{font-size:22px;font-weight:800;}
-.btn-sm{padding:7px 14px;border-radius:8px;border:none;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;}
-.btn-red{background:var(--red);color:#fff;}
-.btn-red:hover{opacity:.85;}
+.nav-item.active{color:var(--gold);border-left-color:var(--gold);background:rgba(240,180,41,0.06);}
+.nav-icon{font-size:15px;width:18px;text-align:center;flex-shrink:0;}
+.badge{margin-left:auto;padding:2px 7px;border-radius:8px;font-size:9px;font-weight:800;background:var(--red);color:#fff;animation:badgePulse 2s infinite;}
+@keyframes badgePulse{0%,100%{opacity:1}50%{opacity:.7}}
+.sidebar-bot{margin-top:auto;padding:14px;border-top:1px solid var(--border2);}
+.admin-chip{background:rgba(240,180,41,0.08);border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.admin-avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold2));display:flex;align-items:center;justify-content:center;font-size:12px;color:#000;font-weight:800;}
+.admin-info{font-size:11px;font-weight:700;}
+.admin-info small{display:block;font-size:9px;color:var(--muted);font-weight:400;}
+
+/* ── MAIN ── */
+.main{margin-left:var(--sidebar);min-height:100vh;padding:28px;}
+
+/* ── TOPBAR ── */
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;}
+.page-title{font-family:var(--font-display);font-size:28px;letter-spacing:2px;}
+.topbar-right{display:flex;gap:8px;align-items:center;}
+.btn{padding:9px 16px;border-radius:10px;border:none;font-family:var(--font-body);font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:5px;}
+.btn:hover{opacity:.85;}
+.btn-gold{background:linear-gradient(135deg,var(--gold),#e8a020);color:#000;}
 .btn-blue{background:var(--blue);color:#fff;}
 .btn-green{background:var(--green);color:#000;}
+.btn-red{background:var(--red);color:#fff;}
+.btn-ghost{background:rgba(255,255,255,0.05);color:var(--text);border:1px solid var(--border2);}
+.btn-ghost:hover{background:rgba(255,255,255,0.08);}
 
-/* PAGES */
-.page{display:none;}
+/* ── PAGES ── */
+.page{display:none;animation:fadeIn .25s ease;}
 .page.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 
-/* STAT CARDS */
-.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:24px;}
-.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:18px 16px;}
-.stat-label{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
-.stat-value{font-size:24px;font-weight:800;color:var(--text);}
+/* ── STAT CARDS ── */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:14px;margin-bottom:28px;}
+.stat-card{background:var(--bg2);border:1px solid var(--border2);border-radius:14px;padding:20px;position:relative;overflow:hidden;transition:all .2s;cursor:default;}
+.stat-card:hover{border-color:var(--border);transform:translateY(-2px);}
+.stat-card::before{content:'';position:absolute;top:0;right:0;width:60px;height:60px;border-radius:0 14px 0 60px;opacity:.08;}
+.stat-card.gold-card::before{background:var(--gold);}
+.stat-card.green-card::before{background:var(--green);}
+.stat-card.red-card::before{background:var(--red);}
+.stat-card.blue-card::before{background:var(--blue);}
+.stat-icon{font-size:20px;margin-bottom:10px;}
+.stat-label{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;font-weight:700;}
+.stat-value{font-family:var(--font-display);font-size:26px;color:var(--text);}
 .stat-value.gold{color:var(--gold);}
 .stat-value.green{color:var(--green);}
 .stat-value.red{color:var(--red);}
-.stat-sub{font-size:11px;color:var(--muted);margin-top:4px;}
+.stat-value.blue{color:var(--blue);}
+.stat-change{font-size:11px;color:var(--muted);margin-top:4px;}
+.stat-change.up{color:var(--green);}
+.stat-change.down{color:var(--red);}
 
-/* TABLE */
-.card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:20px;}
-.card-hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);}
-.card-title{font-size:14px;font-weight:700;}
+/* ── CARD ── */
+.card{background:var(--bg2);border:1px solid var(--border2);border-radius:14px;overflow:hidden;margin-bottom:20px;}
+.card-hdr{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border2);}
+.card-title{font-size:13px;font-weight:700;letter-spacing:.5px;display:flex;align-items:center;gap:8px;}
 .table-wrap{overflow-x:auto;}
 table{width:100%;border-collapse:collapse;}
-th{padding:10px 14px;text-align:left;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);font-weight:700;background:var(--bg3);}
-td{padding:11px 14px;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.04);}
+th{padding:11px 16px;text-align:left;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);font-weight:700;background:var(--bg3);}
+td{padding:12px 16px;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.04);transition:background .15s;}
 tr:last-child td{border-bottom:none;}
 tr:hover td{background:rgba(255,255,255,0.02);}
-.pill{display:inline-block;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700;}
-.pill-green{background:rgba(0,230,118,0.15);color:var(--green);}
-.pill-red{background:rgba(255,61,87,0.15);color:var(--red);}
-.pill-yellow{background:rgba(240,180,41,0.15);color:var(--gold);}
-.pill-blue{background:rgba(61,154,255,0.15);color:var(--blue);}
-.pill-grey{background:rgba(255,255,255,0.08);color:var(--muted);}
 
-/* ACTION BTNS */
-.act-btns{display:flex;gap:5px;}
-.act-btn{padding:4px 10px;border-radius:6px;border:none;font-size:11px;font-weight:700;cursor:pointer;transition:all .12s;}
-.act-btn:hover{opacity:.85;}
+/* ── PILLS ── */
+.pill{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;}
+.pill-green{background:rgba(6,214,160,0.12);color:var(--green);}
+.pill-red{background:rgba(239,68,68,0.12);color:var(--red);}
+.pill-yellow{background:rgba(240,180,41,0.12);color:var(--gold);}
+.pill-blue{background:rgba(59,130,246,0.12);color:var(--blue);}
+.pill-purple{background:rgba(139,92,246,0.12);color:var(--purple);}
+.pill-grey{background:rgba(255,255,255,0.06);color:var(--muted);}
+.pill-orange{background:rgba(249,115,22,0.12);color:var(--orange);}
 
-/* FILTER BAR */
+/* ── ACTION BUTTONS ── */
+.act-btns{display:flex;gap:5px;flex-wrap:wrap;}
+.act-btn{padding:5px 10px;border-radius:6px;border:none;font-size:11px;font-weight:700;cursor:pointer;transition:all .12s;display:inline-flex;align-items:center;gap:3px;}
+.act-btn:hover{opacity:.85;transform:scale(1.02);}
+
+/* ── FILTER BAR ── */
 .filter-bar{display:flex;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap;}
-.filter-inp{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-family:inherit;font-size:13px;outline:none;}
+.filter-inp{background:var(--bg2);border:1px solid var(--border2);border-radius:8px;padding:9px 12px;color:var(--text);font-family:var(--font-body);font-size:13px;outline:none;transition:border-color .2s;}
 .filter-inp:focus{border-color:var(--gold);}
 select.filter-inp option{background:var(--bg3);}
 
-/* MODAL */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:1000;display:none;align-items:center;justify-content:center;}
+/* ── MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(6px);z-index:1000;display:none;align-items:center;justify-content:center;padding:16px;}
 .modal-overlay.open{display:flex;}
-.modal{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:28px;width:460px;max-width:95vw;max-height:85vh;overflow-y:auto;}
-.modal-title{font-size:16px;font-weight:800;margin-bottom:18px;}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:0;width:500px;max-width:95vw;max-height:90vh;overflow-y:auto;animation:modalIn .2s ease;}
+@keyframes modalIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:none}}
+.modal-hdr{display:flex;align-items:center;justify-content:space-between;padding:22px 24px 0;}
+.modal-title{font-family:var(--font-display);font-size:22px;letter-spacing:2px;}
+.modal-close-btn{background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.modal-close-btn:hover{background:rgba(255,255,255,0.08);color:var(--text);}
+.modal-body{padding:24px;}
 .modal-field{margin-bottom:14px;}
-.modal-label{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:5px;}
+.modal-label{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;display:block;font-weight:700;}
 .modal-btns{display:flex;gap:8px;margin-top:20px;justify-content:flex-end;}
-.modal-btn{padding:9px 20px;border-radius:8px;border:none;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;}
+.modal-btn{padding:10px 22px;border-radius:10px;border:none;font-family:var(--font-body);font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;}
 .modal-btn-cancel{background:var(--bg3);color:var(--text);}
-.modal-btn-ok{background:var(--gold);color:#000;}
-.modal-btn-ok:hover{background:#f7c84a;}
+.modal-btn-ok{background:linear-gradient(135deg,var(--gold),#e8a020);color:#000;}
+.modal-btn-ok:hover{box-shadow:0 4px 14px rgba(240,180,41,0.3);}
 
-/* USER DETAIL */
-.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;}
-.detail-item{background:var(--bg3);border-radius:8px;padding:12px;}
-.detail-key{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;}
-.detail-val{font-size:14px;font-weight:600;}
+/* ── USER DETAIL GRID ── */
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+.detail-item{background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:12px;}
+.detail-key{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;}
+.detail-val{font-size:14px;font-weight:700;}
 
-/* LOADING */
-.loading{display:flex;align-items:center;justify-content:center;padding:40px;color:var(--muted);gap:10px;}
-.spinner{width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite;}
+/* ── LOADING ── */
+.loading{display:flex;align-items:center;justify-content:center;padding:48px;color:var(--muted);gap:10px;}
+.spinner{width:20px;height:20px;border:2px solid var(--border2);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* TOAST */
-.toast-container{position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px;}
-.toast{padding:12px 18px;border-radius:10px;font-size:13px;font-weight:600;animation:slideIn .2s ease;min-width:220px;box-shadow:0 4px 20px rgba(0,0,0,0.5);}
-.toast.success{background:var(--green);color:#000;}
-.toast.error{background:var(--red);color:#fff;}
-.toast.info{background:var(--blue);color:#fff;}
-@keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+/* ── SKELETON ── */
+.skeleton{background:linear-gradient(90deg,var(--bg2) 25%,var(--bg3) 50%,var(--bg2) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:6px;}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 
-/* EMPTY STATE */
-.empty{text-align:center;padding:40px;color:var(--muted);}
-.empty-icon{font-size:36px;margin-bottom:10px;}
+/* ── TOAST ── */
+.toast-container{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;}
+.toast{padding:12px 18px;border-radius:10px;font-size:13px;font-weight:600;animation:toastIn .2s ease;min-width:240px;box-shadow:0 8px 32px rgba(0,0,0,0.5);display:flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid var(--border2);}
+.toast.success{border-color:rgba(6,214,160,0.4);}
+.toast.error{border-color:rgba(239,68,68,0.4);}
+.toast.info{border-color:rgba(240,180,41,0.4);}
+@keyframes toastIn{from{transform:translateX(20px);opacity:0}to{transform:none;opacity:1}}
+
+/* ── EMPTY STATE ── */
+.empty{text-align:center;padding:48px;color:var(--muted);}
+.empty-icon{font-size:40px;margin-bottom:10px;}
+.empty-text{font-size:14px;font-weight:600;margin-bottom:4px;}
+.empty-sub{font-size:12px;}
+
+/* ── MINI CHART (dashboard) ── */
+.mini-chart{height:60px;display:flex;align-items:flex-end;gap:3px;padding:10px 0 0;}
+.bar{flex:1;border-radius:3px 3px 0 0;background:linear-gradient(180deg,rgba(240,180,41,0.6),rgba(240,180,41,0.2));transition:height .3s;}
+
+/* ── QUICK ACTIONS ── */
+.quick-actions{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:28px;}
+.qa-card{background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:16px;text-align:center;cursor:pointer;transition:all .2s;}
+.qa-card:hover{border-color:var(--border);transform:translateY(-2px);}
+.qa-icon{font-size:24px;margin-bottom:6px;}
+.qa-label{font-size:11px;font-weight:700;color:var(--muted);}
+
+/* ── DASHBOARD GRID ── */
+.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
+
+/* ── KYC STATUS ── */
+.kyc-chip{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:12px;font-size:10px;font-weight:700;}
+
+/* ── REAL TIME DOT ── */
+.live-dot{width:8px;height:8px;border-radius:50%;background:var(--green);animation:livePulse 2s infinite;flex-shrink:0;}
+@keyframes livePulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.3)}}
+
+/* ── METRIC ROW ── */
+.metric-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border2);}
+.metric-row:last-child{border-bottom:none;}
+.metric-label{font-size:13px;color:var(--muted);}
+.metric-value{font-family:var(--font-mono);font-size:13px;font-weight:600;}
+
+/* ── CRYPTO SECTION ── */
+.crypto-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(139,92,246,0.12);border:1px solid rgba(139,92,246,0.25);border-radius:6px;padding:2px 8px;font-size:10px;font-weight:700;color:var(--purple);}
 </style>
 </head>
 <body>
 
+<div class="toast-container" id="toastCon"></div>
+
 <!-- LOGIN -->
 <div id="loginPage">
   <div class="login-box">
-    <div class="login-logo">Only<span>Bet</span></div>
+    <div class="login-logo">ONLYBET</div>
     <div class="login-sub">Painel de Administração</div>
-    <input class="inp" id="loginEmail" type="email" placeholder="Email admin" value="admin@onlybet.ao">
-    <input class="inp" id="loginPass" type="password" placeholder="Palavra-passe" id="loginPass">
-    <button class="btn btn-gold" onclick="doLogin()">Entrar</button>
-    <div class="err-msg" id="loginErr"></div>
+    <input class="inp" id="loginEmail" type="email" placeholder="Email admin" value="">
+    <input class="inp" id="loginPass" type="password" placeholder="Palavra-passe">
+    <button class="btn-login" onclick="doLogin()">ENTRAR</button>
+    <div class="login-err" id="loginErr"></div>
   </div>
 </div>
 
 <!-- APP -->
 <div id="app">
+  <!-- SIDEBAR -->
   <div class="sidebar">
     <div class="logo-wrap">
-      <div class="logo">Only<span>Bet</span></div>
-      <div class="logo-sub">Admin Panel</div>
+      <div class="logo">ONLYBET</div>
+      <div class="logo-sub">Admin Panel v3</div>
     </div>
 
-    <div class="nav-section">Visão Geral</div>
-    <div class="nav-item active" data-page="dashboard" onclick="goPage('dashboard',this)">
+    <div class="nav-section">Overview</div>
+    <div class="nav-item active" onclick="goPage('dashboard',this)">
       <span class="nav-icon">📊</span> Dashboard
     </div>
 
     <div class="nav-section">Financeiro</div>
-    <div class="nav-item" data-page="depositos" onclick="goPage('depositos',this)">
+    <div class="nav-item" onclick="goPage('depositos',this)">
       <span class="nav-icon">💳</span> Depósitos
-      <span class="badge" id="badgeDepositos">0</span>
+      <span class="badge" id="badgeDepositos" style="display:none">0</span>
     </div>
-    <div class="nav-item" data-page="levantamentos" onclick="goPage('levantamentos',this)">
+    <div class="nav-item" onclick="goPage('levantamentos',this)">
       <span class="nav-icon">📤</span> Levantamentos
       <span class="badge" id="badgeLevantamentos" style="display:none">0</span>
     </div>
 
     <div class="nav-section">Apostas</div>
-    <div class="nav-item" data-page="apostas" onclick="goPage('apostas',this)">
+    <div class="nav-item" onclick="goPage('apostas',this)">
       <span class="nav-icon">🎯</span> Apostas
+    </div>
+    <div class="nav-item" onclick="goPage('eventos',this)">
+      <span class="nav-icon">⚽</span> Eventos
     </div>
 
     <div class="nav-section">Utilizadores</div>
-    <div class="nav-item" data-page="utilizadores" onclick="goPage('utilizadores',this)">
-      <span class="nav-icon">👤</span> Utilizadores
+    <div class="nav-item" onclick="goPage('utilizadores',this)">
+      <span class="nav-icon">👥</span> Utilizadores
+    </div>
+    <div class="nav-item" onclick="goPage('kyc',this)">
+      <span class="nav-icon">🪪</span> KYC
+      <span class="badge" id="badgeKyc" style="display:none">0</span>
+    </div>
+    <div class="nav-item" onclick="goPage('bonus',this)">
+      <span class="nav-icon">🎁</span> Bónus
     </div>
 
     <div class="nav-section">Sistema</div>
-    <div class="nav-item" data-page="logs" onclick="goPage('logs',this)">
+    <div class="nav-item" onclick="goPage('logs',this)">
       <span class="nav-icon">📋</span> Logs
+    </div>
+    <div class="nav-item" onclick="goPage('relatorios',this)">
+      <span class="nav-icon">📈</span> Relatórios
     </div>
 
     <div class="sidebar-bot">
-      <button class="btn btn-sm btn-red" onclick="logout()" style="width:100%">Sair</button>
+      <div class="admin-chip">
+        <div class="admin-avatar">A</div>
+        <div class="admin-info">Admin <small>Nível: Superadmin</small></div>
+        <div class="live-dot" style="margin-left:auto;" title="Ao vivo"></div>
+      </div>
+      <button class="btn btn-ghost" onclick="logout()" style="width:100%;justify-content:center;">Sair</button>
     </div>
   </div>
 
+  <!-- MAIN -->
   <div class="main">
+
     <!-- DASHBOARD -->
     <div class="page active" id="page-dashboard">
       <div class="topbar">
         <div class="page-title">Dashboard</div>
-        <button class="btn btn-sm btn-blue" onclick="loadDashboard()">↻ Actualizar</button>
+        <div class="topbar-right">
+          <div style="font-size:12px;color:var(--muted);" id="lastUpdate">—</div>
+          <button class="btn btn-ghost" onclick="loadDashboard()">↻ Actualizar</button>
+          <button class="btn btn-gold" onclick="triggerResolver()">⚙️ Resolver Apostas</button>
+        </div>
       </div>
+
+      <div class="quick-actions" id="quickActions">
+        <div class="qa-card" onclick="goPage('depositos',null)"><div class="qa-icon">💳</div><div class="qa-label">Aprovar Depósitos</div></div>
+        <div class="qa-card" onclick="goPage('levantamentos',null)"><div class="qa-icon">📤</div><div class="qa-label">Processar Levant.</div></div>
+        <div class="qa-card" onclick="goPage('kyc',null)"><div class="qa-icon">🪪</div><div class="qa-label">Verificar KYC</div></div>
+        <div class="qa-card" onclick="triggerImport()"><div class="qa-icon">⚽</div><div class="qa-label">Importar Jogos</div></div>
+      </div>
+
       <div class="stats-grid" id="dashStats">
-        <div class="loading"><div class="spinner"></div> A carregar...</div>
+        <div class="skeleton" style="height:90px;border-radius:14px;"></div>
+        <div class="skeleton" style="height:90px;border-radius:14px;"></div>
+        <div class="skeleton" style="height:90px;border-radius:14px;"></div>
+        <div class="skeleton" style="height:90px;border-radius:14px;"></div>
+        <div class="skeleton" style="height:90px;border-radius:14px;"></div>
+        <div class="skeleton" style="height:90px;border-radius:14px;"></div>
       </div>
-      <div class="card">
-        <div class="card-hdr"><span class="card-title">Últimas Acções</span></div>
-        <div id="dashLogs"><div class="loading"><div class="spinner"></div></div></div>
+
+      <div class="dash-grid">
+        <div class="card">
+          <div class="card-hdr"><span class="card-title">📋 Últimas Acções Admin</span></div>
+          <div id="dashLogs"><div class="loading"><div class="spinner"></div></div></div>
+        </div>
+        <div class="card">
+          <div class="card-hdr"><span class="card-title">⚡ Depósitos Pendentes</span><span class="badge" id="dashDepBadge" style="display:none;padding:4px 10px;">0</span></div>
+          <div id="dashDeps"><div class="loading"><div class="spinner"></div></div></div>
+        </div>
       </div>
     </div>
 
@@ -202,21 +329,21 @@ select.filter-inp option{background:var(--bg3);}
     <div class="page" id="page-depositos">
       <div class="topbar">
         <div class="page-title">Depósitos</div>
-        <button class="btn btn-sm btn-blue" onclick="loadDepositos()">↻ Actualizar</button>
+        <button class="btn btn-ghost" onclick="loadDepositos()">↻ Actualizar</button>
       </div>
       <div class="filter-bar">
         <select class="filter-inp" id="depEstado" onchange="loadDepositos()">
-          <option value="transferido">Aguardam Aprovação</option>
-          <option value="aprovado">Aprovados</option>
-          <option value="rejeitado">Rejeitados</option>
-          <option value="all">Todos</option>
+          <option value="transferido">⏳ Aguardam Aprovação</option>
+          <option value="aprovado">✅ Aprovados</option>
+          <option value="rejeitado">❌ Rejeitados</option>
+          <option value="all">📋 Todos</option>
         </select>
       </div>
       <div class="card">
         <div class="card-hdr"><span class="card-title" id="depTitle">Aguardam Aprovação</span></div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Ref</th><th>Utilizador</th><th>Valor</th><th>Método</th><th>Data</th><th>Estado</th><th>Acções</th></tr></thead>
+            <thead><tr><th>Referência</th><th>Utilizador</th><th>Valor</th><th>Método</th><th>Data</th><th>Estado</th><th>Acções</th></tr></thead>
             <tbody id="depTable"><tr><td colspan="7"><div class="loading"><div class="spinner"></div></div></td></tr></tbody>
           </table>
         </div>
@@ -227,10 +354,10 @@ select.filter-inp option{background:var(--bg3);}
     <div class="page" id="page-levantamentos">
       <div class="topbar">
         <div class="page-title">Levantamentos</div>
-        <button class="btn btn-sm btn-blue" onclick="loadLevantamentos()">↻ Actualizar</button>
+        <button class="btn btn-ghost" onclick="loadLevantamentos()">↻ Actualizar</button>
       </div>
       <div class="card">
-        <div class="card-hdr"><span class="card-title">Levantamentos Pendentes</span></div>
+        <div class="card-hdr"><span class="card-title">Levantamentos</span></div>
         <div class="table-wrap">
           <table>
             <thead><tr><th>Ref</th><th>Utilizador</th><th>Valor</th><th>Método</th><th>Telefone</th><th>Data</th><th>Estado</th><th>Acções</th></tr></thead>
@@ -244,14 +371,14 @@ select.filter-inp option{background:var(--bg3);}
     <div class="page" id="page-apostas">
       <div class="topbar">
         <div class="page-title">Apostas</div>
-        <button class="btn btn-sm btn-blue" onclick="loadApostas()">↻ Actualizar</button>
+        <button class="btn btn-ghost" onclick="loadApostas()">↻ Actualizar</button>
       </div>
       <div class="filter-bar">
         <select class="filter-inp" id="apostaEstado" onchange="loadApostas()">
-          <option value="pendente">Pendentes</option>
-          <option value="ganhou">Ganhas</option>
-          <option value="perdeu">Perdidas</option>
-          <option value="cancelada">Canceladas</option>
+          <option value="pendente">⏳ Pendentes</option>
+          <option value="ganhou">✅ Ganhas</option>
+          <option value="perdeu">❌ Perdidas</option>
+          <option value="cancelada">🚫 Canceladas</option>
         </select>
       </div>
       <div class="card">
@@ -265,25 +392,84 @@ select.filter-inp option{background:var(--bg3);}
       </div>
     </div>
 
-    <!-- UTILIZADORES -->
-    <div class="page" id="page-utilizadores">
+    <!-- EVENTOS -->
+    <div class="page" id="page-eventos">
       <div class="topbar">
-        <div class="page-title">Utilizadores</div>
+        <div class="page-title">Eventos</div>
+        <div class="topbar-right">
+          <button class="btn btn-ghost" onclick="loadEventos()">↻ Actualizar</button>
+          <button class="btn btn-gold" onclick="triggerImport()">⬇️ Importar Jogos</button>
+        </div>
       </div>
       <div class="filter-bar">
-        <input class="filter-inp" id="userSearch" type="text" placeholder="🔍 Pesquisar nome, email ou telefone..." oninput="loadUtilizadores()">
-        <select class="filter-inp" id="userSuspenso" onchange="loadUtilizadores()">
-          <option value="">Todos</option>
-          <option value="false">Activos</option>
-          <option value="true">Suspensos</option>
+        <select class="filter-inp" id="eventoEstado" onchange="loadEventos()">
+          <option value="upcoming">📅 Próximos</option>
+          <option value="live">🔴 Ao Vivo</option>
+          <option value="finished">✅ Terminados</option>
         </select>
       </div>
       <div class="card">
-        <div class="card-hdr"><span class="card-title">Lista de Utilizadores</span></div>
+        <div class="card-hdr"><span class="card-title">Lista de Eventos</span></div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Nome</th><th>Email</th><th>Telefone</th><th>Saldo</th><th>Nível</th><th>Estado</th><th>Registo</th><th>Acções</th></tr></thead>
-            <tbody id="usersTable"><tr><td colspan="8"><div class="loading"><div class="spinner"></div></div></td></tr></tbody>
+            <thead><tr><th>Liga</th><th>Casa</th><th>Fora</th><th>Data</th><th>Estado</th><th>Resultado</th></tr></thead>
+            <tbody id="eventosTable"><tr><td colspan="6"><div class="loading"><div class="spinner"></div></div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- UTILIZADORES -->
+    <div class="page" id="page-utilizadores">
+      <div class="topbar"><div class="page-title">Utilizadores</div></div>
+      <div class="filter-bar">
+        <input class="filter-inp" id="userSearch" type="text" placeholder="🔍 Nome, email ou telefone..." oninput="loadUtilizadores()" style="flex:1;max-width:360px;">
+        <select class="filter-inp" id="userSuspenso" onchange="loadUtilizadores()">
+          <option value="">Todos</option>
+          <option value="false">✅ Activos</option>
+          <option value="true">🚫 Suspensos</option>
+        </select>
+      </div>
+      <div class="card">
+        <div class="card-hdr"><span class="card-title">👥 Lista de Utilizadores</span></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Nome</th><th>Email</th><th>Telefone</th><th>Saldo</th><th>Nível</th><th>KYC</th><th>Estado</th><th>Registo</th><th>Acções</th></tr></thead>
+            <tbody id="usersTable"><tr><td colspan="9"><div class="loading"><div class="spinner"></div></div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- KYC -->
+    <div class="page" id="page-kyc">
+      <div class="topbar">
+        <div class="page-title">Verificação KYC</div>
+        <button class="btn btn-ghost" onclick="loadKyc()">↻ Actualizar</button>
+      </div>
+      <div class="card">
+        <div class="card-hdr"><span class="card-title">🪪 Pedidos KYC Pendentes</span></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Utilizador</th><th>Tipo Doc.</th><th>Nº Documento</th><th>Submetido</th><th>Estado</th><th>Acções</th></tr></thead>
+            <tbody id="kycTable"><tr><td colspan="6"><div class="loading"><div class="spinner"></div></div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- BÓNUS -->
+    <div class="page" id="page-bonus">
+      <div class="topbar">
+        <div class="page-title">Bónus</div>
+        <button class="btn btn-gold" onclick="openModal('modalCriarBonus')">+ Criar Bónus</button>
+      </div>
+      <div class="card">
+        <div class="card-hdr"><span class="card-title">🎁 Bónus Activos</span></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Utilizador</th><th>Tipo</th><th>Valor</th><th>Rollover</th><th>Progresso</th><th>Estado</th><th>Validade</th></tr></thead>
+            <tbody id="bonusTable"><tr><td colspan="7"><div class="loading"><div class="spinner"></div></div></td></tr></tbody>
           </table>
         </div>
       </div>
@@ -293,245 +479,304 @@ select.filter-inp option{background:var(--bg3);}
     <div class="page" id="page-logs">
       <div class="topbar">
         <div class="page-title">Logs do Sistema</div>
-        <button class="btn btn-sm btn-blue" onclick="loadLogs()">↻ Actualizar</button>
+        <button class="btn btn-ghost" onclick="loadLogs()">↻ Actualizar</button>
       </div>
       <div class="card">
-        <div class="card-hdr"><span class="card-title">Últimas 100 Acções</span></div>
+        <div class="card-hdr"><span class="card-title">📋 Últimas 100 Acções</span></div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Data</th><th>Admin</th><th>Acção</th><th>Detalhe</th></tr></thead>
+            <thead><tr><th>Data/Hora</th><th>Admin</th><th>Acção</th><th>Detalhe</th></tr></thead>
             <tbody id="logsTable"><tr><td colspan="4"><div class="loading"><div class="spinner"></div></div></td></tr></tbody>
           </table>
         </div>
       </div>
     </div>
-  </div>
-</div>
 
-<!-- MODAL: Ajustar Saldo -->
-<div class="modal-overlay" id="modalSaldo">
-  <div class="modal">
-    <div class="modal-title">Ajustar Saldo</div>
-    <div class="modal-field">
-      <div class="modal-label">Utilizador</div>
-      <div id="modalSaldoUser" style="font-weight:600;color:var(--gold)"></div>
+    <!-- RELATÓRIOS -->
+    <div class="page" id="page-relatorios">
+      <div class="topbar"><div class="page-title">Relatórios</div></div>
+      <div class="stats-grid" id="relStats">
+        <div class="skeleton" style="height:90px;border-radius:14px;"></div>
+        <div class="skeleton" style="height:90px;border-radius:14px;"></div>
+        <div class="skeleton" style="height:90px;border-radius:14px;"></div>
+        <div class="skeleton" style="height:90px;border-radius:14px;"></div>
+      </div>
+      <div class="card">
+        <div class="card-hdr"><span class="card-title">📈 Métricas Financeiras</span></div>
+        <div class="modal-body" id="relContent"><div class="loading"><div class="spinner"></div></div></div>
+      </div>
     </div>
-    <div class="modal-field">
-      <div class="modal-label">Valor (positivo = adicionar, negativo = remover)</div>
-      <input class="inp" id="modalSaldoValor" type="number" placeholder="ex: 5000 ou -2000">
-    </div>
-    <div class="modal-field">
-      <div class="modal-label">Motivo</div>
-      <input class="inp" id="modalSaldoMotivo" type="text" placeholder="ex: Bónus especial, correcção...">
-    </div>
-    <div class="modal-btns">
-      <button class="modal-btn modal-btn-cancel" onclick="closeModal('modalSaldo')">Cancelar</button>
-      <button class="modal-btn modal-btn-ok" onclick="confirmarSaldo()">Confirmar</button>
-    </div>
-  </div>
-</div>
 
-<!-- MODAL: Detalhe Utilizador -->
-<div class="modal-overlay" id="modalUser">
-  <div class="modal" style="width:600px">
-    <div class="modal-title" id="modalUserTitle">Detalhe do Utilizador</div>
-    <div id="modalUserContent"><div class="loading"><div class="spinner"></div></div></div>
-    <div class="modal-btns">
-      <button class="modal-btn modal-btn-cancel" onclick="closeModal('modalUser')">Fechar</button>
-    </div>
-  </div>
-</div>
+  </div><!-- /main -->
+</div><!-- /app -->
 
-<!-- MODAL: Resolver Aposta -->
-<div class="modal-overlay" id="modalAposta">
-  <div class="modal">
-    <div class="modal-title">Resolver Aposta</div>
-    <div class="modal-field">
-      <div class="modal-label">Jogo</div>
-      <div id="modalApostaJogo" style="font-weight:600"></div>
-    </div>
-    <div class="modal-field">
-      <div class="modal-label">Resultado</div>
-      <select class="inp" id="modalApostaRes">
-        <option value="ganhou">✅ Ganhou</option>
-        <option value="perdeu">❌ Perdeu</option>
-        <option value="cancelada">↩️ Cancelar (devolver aposta)</option>
-      </select>
-    </div>
-    <div class="modal-btns">
-      <button class="modal-btn modal-btn-cancel" onclick="closeModal('modalAposta')">Cancelar</button>
-      <button class="modal-btn modal-btn-ok" onclick="confirmarAposta()">Confirmar</button>
-    </div>
-  </div>
-</div>
+<!-- MODALS -->
 
-<!-- MODAL: Rejeitar Depósito/Levantamento -->
+<!-- REJEITAR -->
 <div class="modal-overlay" id="modalRejeitar">
   <div class="modal">
-    <div class="modal-title" id="modalRejeitarTitle">Rejeitar</div>
-    <div class="modal-field">
-      <div class="modal-label">Motivo (opcional)</div>
-      <input class="inp" id="modalRejeitarMotivo" type="text" placeholder="Motivo da rejeição...">
-    </div>
-    <div class="modal-btns">
-      <button class="modal-btn modal-btn-cancel" onclick="closeModal('modalRejeitar')">Cancelar</button>
-      <button class="modal-btn" style="background:var(--red);color:#fff" onclick="confirmarRejeitar()">Rejeitar</button>
+    <div class="modal-hdr"><div class="modal-title" id="modalRejeitarTitle">Rejeitar</div><button class="modal-close-btn" onclick="closeModal('modalRejeitar')">✕</button></div>
+    <div class="modal-body">
+      <div class="modal-field"><label class="modal-label">Motivo (opcional)</label><input class="inp" id="modalRejeitarMotivo" placeholder="Ex: Transferência não encontrada"></div>
+      <div class="modal-btns"><button class="modal-btn modal-btn-cancel" onclick="closeModal('modalRejeitar')">Cancelar</button><button class="modal-btn" style="background:var(--red);color:#fff;" onclick="confirmarRejeitar()">Rejeitar</button></div>
     </div>
   </div>
 </div>
 
-<!-- TOAST -->
-<div class="toast-container" id="toastContainer"></div>
+<!-- APOSTA MANUAL -->
+<div class="modal-overlay" id="modalAposta">
+  <div class="modal">
+    <div class="modal-hdr"><div class="modal-title">Resolver Aposta</div><button class="modal-close-btn" onclick="closeModal('modalAposta')">✕</button></div>
+    <div class="modal-body">
+      <div style="background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:12px;margin-bottom:16px;font-size:13px;" id="modalApostaJogo">—</div>
+      <div class="modal-field"><label class="modal-label">Resultado</label>
+        <select class="inp" id="modalApostaRes"><option value="ganhou">✅ Ganhou</option><option value="perdeu">❌ Perdeu</option><option value="cancelada">🚫 Cancelada</option></select>
+      </div>
+      <div class="modal-btns"><button class="modal-btn modal-btn-cancel" onclick="closeModal('modalAposta')">Cancelar</button><button class="modal-btn modal-btn-ok" onclick="confirmarAposta()">Confirmar</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- SALDO UTILIZADOR -->
+<div class="modal-overlay" id="modalSaldo">
+  <div class="modal">
+    <div class="modal-hdr"><div class="modal-title">Ajustar Saldo</div><button class="modal-close-btn" onclick="closeModal('modalSaldo')">✕</button></div>
+    <div class="modal-body">
+      <div style="margin-bottom:16px;font-size:13px;color:var(--muted);">Utilizador: <strong id="modalSaldoUser" style="color:var(--text)">—</strong></div>
+      <div class="modal-field"><label class="modal-label">Valor (positivo = crédito, negativo = débito)</label><input class="inp" id="modalSaldoValor" type="number" placeholder="Ex: 5000 ou -1000"></div>
+      <div class="modal-field"><label class="modal-label">Motivo</label><input class="inp" id="modalSaldoMotivo" placeholder="Ex: Bónus manual, correcção..."></div>
+      <div class="modal-btns"><button class="modal-btn modal-btn-cancel" onclick="closeModal('modalSaldo')">Cancelar</button><button class="modal-btn modal-btn-ok" onclick="confirmarSaldo()">Aplicar</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- USER DETAIL -->
+<div class="modal-overlay" id="modalUser">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-hdr"><div class="modal-title" id="modalUserTitle">Utilizador</div><button class="modal-close-btn" onclick="closeModal('modalUser')">✕</button></div>
+    <div class="modal-body" id="modalUserContent"><div class="loading"><div class="spinner"></div></div></div>
+  </div>
+</div>
+
+<!-- CRIAR BÓNUS -->
+<div class="modal-overlay" id="modalCriarBonus">
+  <div class="modal">
+    <div class="modal-hdr"><div class="modal-title">Criar Bónus</div><button class="modal-close-btn" onclick="closeModal('modalCriarBonus')">✕</button></div>
+    <div class="modal-body">
+      <div class="modal-field"><label class="modal-label">User ID</label><input class="inp" id="bonusUserId" placeholder="UUID do utilizador"></div>
+      <div class="modal-field"><label class="modal-label">Tipo</label>
+        <select class="inp" id="bonusTipo">
+          <option value="boas_vindas">🎁 Boas-Vindas</option>
+          <option value="recarga">🔄 Recarga</option>
+          <option value="freebet">🏅 Free Bet</option>
+          <option value="cripto">₿ Cripto</option>
+          <option value="manual">🛠️ Manual</option>
+        </select>
+      </div>
+      <div class="modal-field"><label class="modal-label">Valor (Kz)</label><input class="inp" id="bonusValor" type="number" placeholder="Ex: 10000"></div>
+      <div class="modal-field"><label class="modal-label">Rollover (vezes)</label><input class="inp" id="bonusRollover" type="number" placeholder="Ex: 5" value="5"></div>
+      <div class="modal-btns"><button class="modal-btn modal-btn-cancel" onclick="closeModal('modalCriarBonus')">Cancelar</button><button class="modal-btn modal-btn-ok" onclick="criarBonus()">Criar Bónus</button></div>
+    </div>
+  </div>
+</div>
 
 <script>
-const API = '/api/admin';
-let adminToken = localStorage.getItem('ob_admin_token') || '';
-let modalSaldoUserId = '';
+const API = '/api';
+let adminToken = null;
+let adminEmail = null;
+let modalRejeitarTipo = '', modalRejeitarId = '';
 let modalApostaId = '';
-let modalRejeitarId = '';
-let modalRejeitarTipo = '';
+let modalSaldoUserId = '';
 
 // ── AUTH ──────────────────────────────────────────────────────
 async function doLogin() {
-  const email = document.getElementById('loginEmail').value;
+  const email = document.getElementById('loginEmail').value.trim();
   const pass = document.getElementById('loginPass').value;
-  const errEl = document.getElementById('loginErr');
-  errEl.textContent = '';
+  document.getElementById('loginErr').textContent = '';
+  if (!email||!pass) { document.getElementById('loginErr').textContent = 'Preenche os campos.'; return; }
   try {
-    const r = await fetch(`${API}?action=login`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({email, password: pass}) });
+    const r = await fetch(`${API}/admin?action=login`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ email, password: pass })
+    });
     const d = await r.json();
-    if (!d.ok) { errEl.textContent = d.error || 'Erro de login.'; return; }
-    adminToken = d.token;
-    localStorage.setItem('ob_admin_token', adminToken);
-    document.getElementById('loginPage').style.display = 'none';
-    document.getElementById('app').style.display = 'block';
-    initApp();
-  } catch(e) { errEl.textContent = 'Erro de ligação.'; }
+    if (d.ok && d.token) {
+      adminToken = d.token;
+      adminEmail = email;
+      sessionStorage.setItem('ob_admin_token', d.token);
+      document.getElementById('loginPage').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      loadDashboard();
+      setInterval(loadBadges, 30000);
+    } else {
+      document.getElementById('loginErr').textContent = d.error || 'Credenciais inválidas.';
+    }
+  } catch(e) { document.getElementById('loginErr').textContent = 'Erro de ligação.'; }
 }
 
 function logout() {
-  localStorage.removeItem('ob_admin_token');
-  location.reload();
+  sessionStorage.removeItem('ob_admin_token');
+  adminToken = null;
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('loginPage').style.display = 'flex';
 }
 
+// Auto-restore session
+window.addEventListener('load', () => {
+  const saved = sessionStorage.getItem('ob_admin_token');
+  if (saved) {
+    adminToken = saved;
+    document.getElementById('loginPage').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    loadDashboard();
+    setInterval(loadBadges, 30000);
+  }
+});
+
+// ── API HELPER ────────────────────────────────────────────────
 async function api(action, method='GET', body=null, extra='') {
-  const opts = { method, headers: {'Content-Type':'application/json','x-admin-token': adminToken} };
-  if (body) opts.body = JSON.stringify(body);
-  const r = await fetch(`${API}?action=${action}${extra}`, opts);
-  if (r.status === 401) { logout(); return null; }
-  return r.json();
-}
-
-// ── INIT ──────────────────────────────────────────────────────
-function initApp() {
-  loadDashboard();
-  loadDepositosBadge();
-  setInterval(loadDepositosBadge, 30000);
-}
-
-// Check if already logged in
-if (adminToken) {
-  api('dashboard').then(d => {
-    if (d && !d.error) {
-      document.getElementById('loginPage').style.display = 'none';
-      document.getElementById('app').style.display = 'block';
-      initApp();
-    } else {
-      localStorage.removeItem('ob_admin_token');
-      adminToken = '';
-    }
-  });
+  try {
+    const opts = {
+      method,
+      headers: { 'Content-Type':'application/json', 'Authorization': `Bearer ${adminToken}` }
+    };
+    if (body && method !== 'GET') opts.body = JSON.stringify(body);
+    const r = await fetch(`${API}/admin?action=${action}${extra}`, opts);
+    if (r.status === 401) { logout(); return null; }
+    return await r.json();
+  } catch(e) { toast('Erro de ligação.','error'); return null; }
 }
 
 // ── NAVIGATION ────────────────────────────────────────────────
-function goPage(page, el) {
+function goPage(name, el) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.getElementById('page-' + page).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
   if (el) el.classList.add('active');
-  const loaders = { depositos: loadDepositos, levantamentos: loadLevantamentos, apostas: loadApostas, utilizadores: loadUtilizadores, logs: loadLogs };
-  if (loaders[page]) loaders[page]();
+  else { document.querySelectorAll('.nav-item').forEach(i => { if(i.getAttribute('onclick')?.includes(`'${name}'`)) i.classList.add('active'); }); }
+  // Load data for page
+  const loaders = { dashboard: loadDashboard, depositos: loadDepositos, levantamentos: loadLevantamentos, apostas: loadApostas, utilizadores: loadUtilizadores, logs: loadLogs, kyc: loadKyc, bonus: loadBonus, eventos: loadEventos, relatorios: loadRelatorios };
+  if (loaders[name]) loaders[name]();
 }
+
+// ── MODAL HELPERS ─────────────────────────────────────────────
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', e => { if(e.target===o) o.classList.remove('open'); }));
+document.addEventListener('keydown', e => { if(e.key==='Enter' && document.getElementById('loginPage').style.display!=='none') doLogin(); if(e.key==='Escape') document.querySelectorAll('.modal-overlay.open').forEach(o=>o.classList.remove('open')); });
 
 // ── TOAST ─────────────────────────────────────────────────────
 function toast(msg, type='info') {
   const el = document.createElement('div');
+  const icons = { success:'✅', error:'❌', info:'ℹ️' };
   el.className = `toast ${type}`;
-  el.textContent = msg;
-  document.getElementById('toastContainer').appendChild(el);
-  setTimeout(() => el.remove(), 3500);
+  el.innerHTML = `<span>${icons[type]||'ℹ️'}</span><span>${esc(msg)}</span>`;
+  document.getElementById('toastCon').appendChild(el);
+  setTimeout(() => { el.style.opacity='0'; el.style.transition='all .3s'; setTimeout(()=>el.remove(),300); }, 4000);
 }
-
-// ── MODAL ─────────────────────────────────────────────────────
-function openModal(id) { document.getElementById(id).classList.add('open'); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
 // ── DASHBOARD ─────────────────────────────────────────────────
 async function loadDashboard() {
+  document.getElementById('lastUpdate').textContent = 'A actualizar...';
   const [dash, logs] = await Promise.all([api('dashboard'), api('logs')]);
+  document.getElementById('lastUpdate').textContent = 'Actualizado: ' + new Date().toLocaleTimeString('pt-PT');
   if (!dash) return;
-
   const fmt = n => Number(n||0).toLocaleString('pt-AO');
+
   const cards = [
-    { label: 'Total Utilizadores', value: dash.total_users, cls: '' },
-    { label: 'Saldo Total (Kz)', value: fmt(dash.saldo_total), cls: 'gold' },
-    { label: 'Volume Apostado (Kz)', value: fmt(dash.volume_apostado), cls: '' },
-    { label: 'GGR (Kz)', value: fmt(dash.ggr), cls: 'green' },
-    { label: 'Depósitos (Kz)', value: fmt(dash.depositos_total), cls: '' },
-    { label: 'Levantamentos Pend.', value: dash.levantamentos_pendentes, cls: 'red' },
-    { label: 'Dep. a Aprovar', value: dash.deps_pendentes_confirmados, cls: dash.deps_pendentes_confirmados > 0 ? 'red' : '' },
-    { label: 'Hold %', value: dash.hold + '%', cls: 'gold' },
+    { icon:'👥', label:'Total Utilizadores', value: dash.total_users||0, cls:'', cardCls:'blue-card', change: '' },
+    { icon:'💰', label:'Saldo Total (Kz)', value: fmt(dash.saldo_total), cls:'gold', cardCls:'gold-card', change: '' },
+    { icon:'🎯', label:'Volume Apostado (Kz)', value: fmt(dash.volume_apostado), cls:'', cardCls:'', change: '' },
+    { icon:'📈', label:'GGR (Kz)', value: fmt(dash.ggr), cls:'green', cardCls:'green-card', change: dash.hold ? `Hold: ${dash.hold}%` : '' },
+    { icon:'💳', label:'Dep. a Aprovar', value: dash.deps_pendentes_confirmados||0, cls: dash.deps_pendentes_confirmados > 0 ? 'red':'', cardCls: dash.deps_pendentes_confirmados > 0 ? 'red-card':'', change: 'Clica para ver →' },
+    { icon:'📤', label:'Levant. Pendentes', value: dash.levantamentos_pendentes||0, cls: dash.levantamentos_pendentes > 0 ? 'red':'', cardCls:'', change: '' },
   ];
+
   document.getElementById('dashStats').innerHTML = cards.map(c => `
-    <div class="stat-card">
+    <div class="stat-card ${c.cardCls}" onclick="${c.cardCls.includes('red')&&c.icon==='💳'?"goPage('depositos',null)":""}">
+      <div class="stat-icon">${c.icon}</div>
       <div class="stat-label">${c.label}</div>
       <div class="stat-value ${c.cls}">${c.value}</div>
+      ${c.change?`<div class="stat-change">${c.change}</div>`:''}
     </div>`).join('');
 
+  // Update badges
+  const depBadge = dash.deps_pendentes_confirmados || 0;
+  const levBadge = dash.levantamentos_pendentes || 0;
+  ['badgeDepositos','dashDepBadge'].forEach(id => { const el=document.getElementById(id); if(el){el.textContent=depBadge;el.style.display=depBadge>0?'':'none';} });
+  const el2=document.getElementById('badgeLevantamentos'); if(el2){el2.textContent=levBadge;el2.style.display=levBadge>0?'':'none';}
+
+  // Logs
   if (Array.isArray(logs) && logs.length) {
-    const rows = logs.slice(0,10).map(l => `<tr><td>${fmtDate(l.criado_em)}</td><td>${esc(l.accao||'')}</td><td style="color:var(--muted);font-size:12px">${esc(l.detalhe||'')}</td></tr>`).join('');
+    const rows = logs.slice(0,8).map(l => `<tr>
+      <td style="font-size:11px;color:var(--muted);font-family:var(--font-mono)">${fmtDate(l.criado_em)}</td>
+      <td style="font-weight:700">${esc(l.accao||'')}</td>
+      <td style="font-size:11px;color:var(--muted)">${esc(l.detalhe||'')}</td>
+    </tr>`).join('');
     document.getElementById('dashLogs').innerHTML = `<table><thead><tr><th>Data</th><th>Acção</th><th>Detalhe</th></tr></thead><tbody>${rows}</tbody></table>`;
+  }
+
+  // Pending deposits widget
+  const deps = await api('depositos','GET',null,'&estado=transferido');
+  if (Array.isArray(deps)) {
+    const depEl = document.getElementById('dashDeps');
+    if (!deps.length) { depEl.innerHTML='<div class="empty"><div class="empty-icon">✅</div><div class="empty-text">Sem depósitos pendentes</div></div>'; }
+    else depEl.innerHTML = `<table><thead><tr><th>Ref</th><th>Valor</th><th>Método</th><th></th></tr></thead><tbody>${deps.slice(0,5).map(d=>`<tr>
+      <td style="font-family:var(--font-mono);font-size:11px">${d.referencia||'—'}</td>
+      <td style="color:var(--gold);font-weight:700">${Number(d.valor||0).toLocaleString('pt-AO')} Kz</td>
+      <td style="font-size:12px">${esc(d.metodo||'—')}</td>
+      <td><button class="act-btn" style="background:var(--green);color:#000" onclick="aprovarDepQuick('${d.referencia}')">✅ Aprovar</button></td>
+    </tr>`).join('')}</tbody></table>`;
   }
 }
 
-async function loadDepositosBadge() {
+async function loadBadges() {
   const d = await api('dashboard');
   if (!d) return;
-  const n = d.deps_pendentes_confirmados || 0;
-  const el = document.getElementById('badgeDepositos');
-  el.textContent = n;
-  el.style.display = n > 0 ? '' : 'none';
+  const dep = d.deps_pendentes_confirmados || 0;
   const lev = d.levantamentos_pendentes || 0;
-  const el2 = document.getElementById('badgeLevantamentos');
-  el2.textContent = lev;
-  el2.style.display = lev > 0 ? '' : 'none';
+  ['badgeDepositos'].forEach(id => { const el=document.getElementById(id); if(el){el.textContent=dep;el.style.display=dep>0?'':'none';} });
+  const el=document.getElementById('badgeLevantamentos'); if(el){el.textContent=lev;el.style.display=lev>0?'':'none';}
+}
+
+async function triggerResolver() {
+  if (!confirm('Executar o resolver de apostas agora?')) return;
+  toast('A resolver apostas pendentes...','info');
+  const r = await fetch('/api/resolver', { method:'POST', headers:{'x-cron-secret': prompt('CRON Secret:')||''} });
+  const d = await r.json().catch(()=>({error:'Erro'}));
+  toast(d.ok ? `✅ ${d.resolvidas} apostas resolvidas` : (d.error||'Erro'), d.ok?'success':'error');
+}
+
+async function triggerImport() {
+  if (!confirm('Importar jogos da API agora?')) return;
+  toast('A importar jogos...','info');
+  const r = await fetch('/api/betting?action=importar', { method:'POST', headers:{'x-cron-secret': prompt('CRON Secret:')||''} });
+  const d = await r.json().catch(()=>({error:'Erro'}));
+  toast(d.ok ? `✅ ${d.criados} criados, ${d.actualizados} actualizados` : (d.error||'Erro'), d.ok?'success':'error');
 }
 
 // ── DEPÓSITOS ─────────────────────────────────────────────────
 async function loadDepositos() {
   const estado = document.getElementById('depEstado').value;
-  const titles = { transferido: 'Aguardam Aprovação', aprovado: 'Aprovados', rejeitado: 'Rejeitados', all: 'Todos os Depósitos' };
-  document.getElementById('depTitle').textContent = titles[estado] || 'Depósitos';
-
-  const data = await api('depositos', 'GET', null, `&estado=${estado}`);
-  if (!data) return;
+  const titles = { transferido:'⏳ Aguardam Aprovação', aprovado:'✅ Aprovados', rejeitado:'❌ Rejeitados', all:'📋 Todos' };
+  document.getElementById('depTitle').textContent = titles[estado]||'Depósitos';
+  const data = await api('depositos','GET',null,`&estado=${estado}`);
   const tb = document.getElementById('depTable');
-  if (!data.length) { tb.innerHTML = '<tr><td colspan="7"><div class="empty"><div class="empty-icon">✅</div>Nenhum depósito neste estado</div></td></tr>'; return; }
-
+  if (!data?.length) { tb.innerHTML='<tr><td colspan="7"><div class="empty"><div class="empty-icon">✅</div><div class="empty-text">Nenhum depósito</div></div></td></tr>'; return; }
+  const cls = { transferido:'pill-yellow', aprovado:'pill-green', rejeitado:'pill-red', aguarda:'pill-grey' };
+  const isCrypto = m => ['usdt','btc','eth','cripto'].includes((m||'').toLowerCase());
   tb.innerHTML = data.map(d => {
-    const eClass = { transferido: 'pill-yellow', aprovado: 'pill-green', rejeitado: 'pill-red', aguarda: 'pill-grey' };
-    const actions = d.estado === 'transferido' ? `
-      <div class="act-btns">
-        <button class="act-btn" style="background:var(--green);color:#000" onclick="aprovarDep('${d.referencia}')">✅ Aprovar</button>
-        <button class="act-btn" style="background:var(--red);color:#fff" onclick="abrirRejeitar('dep','${d.referencia}')">❌ Rejeitar</button>
-      </div>` : `<span class="pill ${eClass[d.estado]||'pill-grey'}">${d.estado}</span>`;
+    const actions = d.estado==='transferido' ? `<div class="act-btns">
+      <button class="act-btn" style="background:var(--green);color:#000" onclick="aprovarDep('${d.referencia}')">✅ Aprovar</button>
+      <button class="act-btn" style="background:var(--red);color:#fff" onclick="abrirRejeitar('dep','${d.referencia}')">❌ Rejeitar</button>
+    </div>` : `<span class="pill ${cls[d.estado]||'pill-grey'}">${d.estado}</span>`;
     return `<tr>
-      <td style="font-family:monospace;font-size:12px">${d.referencia||'—'}</td>
-      <td>${esc(d.user_nome||d.user_id?.slice(0,8)||'—')}<br><span style="color:var(--muted);font-size:11px">${esc(d.user_telefone||'')}</span></td>
-      <td style="color:var(--gold);font-weight:700">${Number(d.valor||0).toLocaleString('pt-AO')} Kz</td>
-      <td>${esc(d.metodo||'—')}</td>
-      <td style="font-size:12px;color:var(--muted)">${fmtDate(d.criado_em)}</td>
-      <td><span class="pill ${eClass[d.estado]||'pill-grey'}">${d.estado}</span></td>
+      <td style="font-family:var(--font-mono);font-size:11px">${esc(d.referencia||'—')}</td>
+      <td><span style="font-weight:700">${esc(d.user_nome||d.user_id?.slice(0,8)||'—')}</span><br><span style="color:var(--muted);font-size:11px">${esc(d.user_telefone||'')}</span></td>
+      <td style="color:var(--gold);font-weight:700;font-family:var(--font-mono)">${Number(d.valor||0).toLocaleString('pt-AO')} Kz</td>
+      <td>${isCrypto(d.metodo)?`<span class="crypto-badge">₿ ${esc(d.metodo)}</span>`:esc(d.metodo||'—')}</td>
+      <td style="font-size:11px;color:var(--muted)">${fmtDate(d.criado_em)}</td>
+      <td><span class="pill ${cls[d.estado]||'pill-grey'}">${d.estado}</span></td>
       <td>${actions}</td>
     </tr>`;
   }).join('');
@@ -539,50 +784,48 @@ async function loadDepositos() {
 
 async function aprovarDep(ref) {
   if (!confirm(`Aprovar depósito ${ref}?`)) return;
-  const r = await api('aprovar_deposito', 'POST', { ref });
-  if (r?.ok) { toast('Depósito aprovado!', 'success'); loadDepositos(); loadDepositosBadge(); }
-  else toast(r?.error || 'Erro', 'error');
+  const r = await api('aprovar_deposito','POST',{ref});
+  if (r?.ok) { toast('✅ Depósito aprovado!','success'); loadDepositos(); loadBadges(); }
+  else toast(r?.error||'Erro','error');
 }
 
+async function aprovarDepQuick(ref) { await aprovarDep(ref); loadDashboard(); }
+
 function abrirRejeitar(tipo, id) {
-  modalRejeitarTipo = tipo;
-  modalRejeitarId = id;
-  document.getElementById('modalRejeitarTitle').textContent = tipo === 'dep' ? 'Rejeitar Depósito' : 'Rejeitar Levantamento';
-  document.getElementById('modalRejeitarMotivo').value = '';
+  modalRejeitarTipo=tipo; modalRejeitarId=id;
+  document.getElementById('modalRejeitarTitle').textContent = tipo==='dep'?'Rejeitar Depósito':'Rejeitar Levantamento';
+  document.getElementById('modalRejeitarMotivo').value='';
   openModal('modalRejeitar');
 }
 
 async function confirmarRejeitar() {
   const motivo = document.getElementById('modalRejeitarMotivo').value;
   let r;
-  if (modalRejeitarTipo === 'dep') r = await api('rejeitar_deposito', 'POST', { ref: modalRejeitarId, motivo });
-  else r = await api('rejeitar_levantamento', 'POST', { id: modalRejeitarId, motivo });
-  if (r?.ok) { toast('Rejeitado com sucesso.', 'success'); closeModal('modalRejeitar'); loadDepositos(); loadLevantamentos(); }
-  else toast(r?.error || 'Erro', 'error');
+  if (modalRejeitarTipo==='dep') r = await api('rejeitar_deposito','POST',{ref:modalRejeitarId,motivo});
+  else r = await api('rejeitar_levantamento','POST',{id:modalRejeitarId,motivo});
+  if (r?.ok) { toast('Rejeitado.','success'); closeModal('modalRejeitar'); loadDepositos(); loadLevantamentos(); }
+  else toast(r?.error||'Erro','error');
 }
 
 // ── LEVANTAMENTOS ─────────────────────────────────────────────
 async function loadLevantamentos() {
   const data = await api('levantamentos');
-  if (!data) return;
   const tb = document.getElementById('levTable');
-  if (!data.length) { tb.innerHTML = '<tr><td colspan="8"><div class="empty"><div class="empty-icon">✅</div>Sem levantamentos pendentes</div></td></tr>'; return; }
-
+  if (!data?.length) { tb.innerHTML='<tr><td colspan="8"><div class="empty"><div class="empty-icon">✅</div><div class="empty-text">Sem levantamentos pendentes</div></div></td></tr>'; return; }
+  const cls = { pendente:'pill-yellow', aprovado:'pill-green', rejeitado:'pill-red' };
   tb.innerHTML = data.map(l => {
-    const eClass = { pendente: 'pill-yellow', aprovado: 'pill-green', rejeitado: 'pill-red' };
-    const actions = l.estado === 'pendente' ? `
-      <div class="act-btns">
-        <button class="act-btn" style="background:var(--green);color:#000" onclick="aprovarLev('${l.id}')">✅ Pago</button>
-        <button class="act-btn" style="background:var(--red);color:#fff" onclick="abrirRejeitar('lev','${l.id}')">❌ Recusar</button>
-      </div>` : `<span class="pill ${eClass[l.estado]||'pill-grey'}">${l.estado}</span>`;
+    const actions = l.estado==='pendente' ? `<div class="act-btns">
+      <button class="act-btn" style="background:var(--green);color:#000" onclick="aprovarLev('${l.id}')">✅ Pago</button>
+      <button class="act-btn" style="background:var(--red);color:#fff" onclick="abrirRejeitar('lev','${l.id}')">❌ Recusar</button>
+    </div>` : `<span class="pill ${cls[l.estado]||'pill-grey'}">${l.estado}</span>`;
     return `<tr>
-      <td style="font-family:monospace;font-size:12px">${l.referencia||l.id?.slice(0,8)||'—'}</td>
-      <td style="font-size:12px;color:var(--muted)">${l.user_id?.slice(0,8)||'—'}</td>
-      <td style="color:var(--gold);font-weight:700">${Number(l.valor||0).toLocaleString('pt-AO')} Kz</td>
+      <td style="font-family:var(--font-mono);font-size:11px">${esc(l.referencia||l.id?.slice(0,8)||'—')}</td>
+      <td style="font-size:12px;color:var(--muted)">${esc(l.user_nome||l.user_id?.slice(0,8)||'—')}</td>
+      <td style="color:var(--gold);font-weight:700;font-family:var(--font-mono)">${Number(l.valor||0).toLocaleString('pt-AO')} Kz</td>
       <td>${esc(l.metodo||'—')}</td>
-      <td>${esc(l.numero_telef||'—')}</td>
-      <td style="font-size:12px;color:var(--muted)">${fmtDate(l.criado_em)}</td>
-      <td><span class="pill ${eClass[l.estado]||'pill-grey'}">${l.estado}</span></td>
+      <td style="font-family:var(--font-mono)">${esc(l.numero_telef||'—')}</td>
+      <td style="font-size:11px;color:var(--muted)">${fmtDate(l.criado_em)}</td>
+      <td><span class="pill ${cls[l.estado]||'pill-grey'}">${l.estado}</span></td>
       <td>${actions}</td>
     </tr>`;
   }).join('');
@@ -590,36 +833,30 @@ async function loadLevantamentos() {
 
 async function aprovarLev(id) {
   if (!confirm('Confirmar pagamento efectuado?')) return;
-  const r = await api('aprovar_levantamento', 'POST', { id });
-  if (r?.ok) { toast('Levantamento aprovado!', 'success'); loadLevantamentos(); }
-  else toast(r?.error || 'Erro', 'error');
+  const r = await api('aprovar_levantamento','POST',{id});
+  if (r?.ok) { toast('✅ Levantamento aprovado!','success'); loadLevantamentos(); }
+  else toast(r?.error||'Erro','error');
 }
 
 // ── APOSTAS ───────────────────────────────────────────────────
 async function loadApostas() {
   const estado = document.getElementById('apostaEstado').value;
-  const data = await api('apostas', 'GET', null, `&estado=${estado}`);
-  if (!data) return;
+  const data = await api('apostas','GET',null,`&estado=${estado}`);
   const tb = document.getElementById('apostasTable');
-  if (!data.length) { tb.innerHTML = '<tr><td colspan="10"><div class="empty"><div class="empty-icon">🎯</div>Sem apostas neste estado</div></td></tr>'; return; }
-
-  tb.innerHTML = data.map(a => {
-    const eClass = { pendente: 'pill-yellow', ganhou: 'pill-green', perdeu: 'pill-red', cancelada: 'pill-grey' };
-    const actions = a.resultado === 'pendente' ? `
-      <button class="act-btn" style="background:var(--gold);color:#000" onclick="abrirAposta('${a.id}','${esc(a.jogo||'')}')">Resolver</button>` : '—';
-    return `<tr>
-      <td style="font-family:monospace;font-size:11px">${a.id?.slice(0,8)||'—'}</td>
-      <td style="font-size:12px;color:var(--muted)">${a.user_id?.slice(0,8)||'—'}</td>
-      <td style="font-size:12px">${esc(a.jogo||'—')}</td>
-      <td style="font-size:11px;color:var(--muted)">${esc(a.detalhe||'—')}</td>
-      <td style="color:var(--gold)">${Number(a.valor_apostado||0).toLocaleString('pt-AO')} Kz</td>
-      <td>${Number(a.odd_total||0).toFixed(2)}x</td>
-      <td>${Number(a.ganho_potencial||0).toLocaleString('pt-AO')} Kz</td>
-      <td><span class="pill ${eClass[a.resultado]||'pill-grey'}">${a.resultado}</span></td>
-      <td style="font-size:11px;color:var(--muted)">${fmtDate(a.criado_em)}</td>
-      <td>${actions}</td>
-    </tr>`;
-  }).join('');
+  if (!data?.length) { tb.innerHTML='<tr><td colspan="10"><div class="empty"><div class="empty-icon">🎯</div><div class="empty-text">Sem apostas</div></div></td></tr>'; return; }
+  const cls = { pendente:'pill-yellow', ganhou:'pill-green', perdeu:'pill-red', cancelada:'pill-grey' };
+  tb.innerHTML = data.map(a => `<tr>
+    <td style="font-family:var(--font-mono);font-size:10px">${(a.id||'').slice(0,8)}</td>
+    <td style="font-size:11px;color:var(--muted)">${esc(a.user_nome||a.user_id?.slice(0,8)||'—')}</td>
+    <td style="font-size:12px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(a.jogo||'—')}</td>
+    <td style="font-size:11px;color:var(--muted);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(a.detalhe||'—')}</td>
+    <td style="color:var(--gold);font-family:var(--font-mono);font-weight:700">${Number(a.valor_apostado||0).toLocaleString('pt-AO')} Kz</td>
+    <td style="font-family:var(--font-mono)">${Number(a.odd_total||0).toFixed(2)}x</td>
+    <td style="font-family:var(--font-mono)">${Number(a.ganho_potencial||0).toLocaleString('pt-AO')} Kz</td>
+    <td><span class="pill ${cls[a.resultado]||'pill-grey'}">${a.resultado}</span></td>
+    <td style="font-size:10px;color:var(--muted)">${fmtDate(a.criado_em)}</td>
+    <td>${a.resultado==='pendente'?`<button class="act-btn" style="background:var(--gold);color:#000" onclick="abrirAposta('${a.id}','${esc(a.jogo||'')}')">Resolver</button>`:'—'}</td>
+  </tr>`).join('');
 }
 
 function abrirAposta(id, jogo) {
@@ -631,9 +868,26 @@ function abrirAposta(id, jogo) {
 
 async function confirmarAposta() {
   const resultado = document.getElementById('modalApostaRes').value;
-  const r = await api('resolver_aposta', 'POST', { id: modalApostaId, resultado });
+  const r = await api('resolver_aposta','POST',{id:modalApostaId,resultado});
   if (r?.ok) { toast(`Aposta marcada como "${resultado}"`, 'success'); closeModal('modalAposta'); loadApostas(); }
-  else toast(r?.error || 'Erro', 'error');
+  else toast(r?.error||'Erro','error');
+}
+
+// ── EVENTOS ───────────────────────────────────────────────────
+async function loadEventos() {
+  const estado = document.getElementById('eventoEstado').value;
+  const data = await api('eventos','GET',null,`&estado=${estado}`);
+  const tb = document.getElementById('eventosTable');
+  if (!Array.isArray(data)||!data.length) { tb.innerHTML='<tr><td colspan="6"><div class="empty"><div class="empty-icon">⚽</div><div class="empty-text">Sem eventos</div></div></td></tr>'; return; }
+  const cls = { upcoming:'pill-blue', live:'pill-red', finished:'pill-green', suspended:'pill-yellow', cancelled:'pill-grey' };
+  tb.innerHTML = data.map(e => `<tr>
+    <td style="font-size:11px;color:var(--muted)">${esc(e.liga||'—')}</td>
+    <td style="font-weight:700">${esc(e.equipa_casa||'—')}</td>
+    <td style="font-weight:700">${esc(e.equipa_fora||'—')}</td>
+    <td style="font-size:11px;color:var(--muted)">${fmtDate(e.data_inicio)}</td>
+    <td><span class="pill ${cls[e.estado]||'pill-grey'}">${e.estado==='live'?'🔴 AO VIVO':e.estado}</span></td>
+    <td style="font-family:var(--font-mono)">${e.estado==='live'||e.estado==='finished'?`${e.golos_casa||0} : ${e.golos_fora||0}`:'—'}</td>
+  </tr>`).join('');
 }
 
 // ── UTILIZADORES ──────────────────────────────────────────────
@@ -643,67 +897,65 @@ async function loadUtilizadores() {
   let extra = '';
   if (search) extra += `&search=${encodeURIComponent(search)}`;
   if (suspenso !== '') extra += `&suspenso=${suspenso}`;
-  const data = await api('utilizadores', 'GET', null, extra);
-  if (!data) return;
+  const data = await api('utilizadores','GET',null,extra);
   const tb = document.getElementById('usersTable');
-  if (!data.length) { tb.innerHTML = '<tr><td colspan="8"><div class="empty"><div class="empty-icon">👤</div>Nenhum utilizador encontrado</div></td></tr>'; return; }
-
+  if (!data?.length) { tb.innerHTML='<tr><td colspan="9"><div class="empty"><div class="empty-icon">👥</div><div class="empty-text">Nenhum utilizador</div></div></td></tr>'; return; }
+  const nivelCls = { bronze:'pill-orange', silver:'pill-grey', gold:'pill-yellow', vip:'pill-purple' };
   tb.innerHTML = data.map(u => `<tr>
-    <td style="font-weight:600">${esc(u.nome||'—')}</td>
-    <td style="font-size:12px;color:var(--muted)">${esc(u.email||'—')}</td>
-    <td>${esc(u.telefone||'—')}</td>
-    <td style="color:var(--gold);font-weight:700">${Number(u.saldo||0).toLocaleString('pt-AO')} Kz</td>
-    <td><span class="pill pill-blue">${u.nivel||'bronze'}</span></td>
+    <td style="font-weight:700">${esc(u.nome||'—')}</td>
+    <td style="font-size:11px;color:var(--muted)">${esc(u.email||'—')}</td>
+    <td style="font-family:var(--font-mono);font-size:12px">${esc(u.telefone||'—')}</td>
+    <td style="color:var(--gold);font-weight:700;font-family:var(--font-mono)">${Number(u.saldo||0).toLocaleString('pt-AO')} Kz</td>
+    <td><span class="pill ${nivelCls[u.nivel||'bronze']||'pill-orange'}">${u.nivel||'bronze'}</span></td>
+    <td><span class="pill ${u.kyc_estado==='aprovado'?'pill-green':u.kyc_estado==='pendente'?'pill-yellow':'pill-grey'}">${u.kyc_estado||'nenhum'}</span></td>
     <td><span class="pill ${u.suspenso?'pill-red':'pill-green'}">${u.suspenso?'Suspenso':'Activo'}</span></td>
-    <td style="font-size:11px;color:var(--muted)">${fmtDate(u.criado_em)}</td>
-    <td>
-      <div class="act-btns">
-        <button class="act-btn" style="background:var(--blue);color:#fff" onclick="verUser('${u.id}')">Ver</button>
-        <button class="act-btn" style="background:var(--gold);color:#000" onclick="abrirSaldo('${u.id}','${esc(u.nome||'')}')">Saldo</button>
-        <button class="act-btn" style="background:${u.suspenso?'var(--green)':'var(--red)'};color:${u.suspenso?'#000':'#fff'}" onclick="toggleSuspend('${u.id}',${!u.suspenso})">${u.suspenso?'Activar':'Suspender'}</button>
-      </div>
-    </td>
+    <td style="font-size:10px;color:var(--muted)">${fmtDate(u.criado_em)}</td>
+    <td><div class="act-btns">
+      <button class="act-btn" style="background:var(--blue);color:#fff" onclick="verUser('${u.id}')">Ver</button>
+      <button class="act-btn" style="background:var(--gold);color:#000" onclick="abrirSaldo('${u.id}','${esc(u.nome||'')}')">Saldo</button>
+      <button class="act-btn" style="background:${u.suspenso?'var(--green)':'var(--red)'};color:${u.suspenso?'#000':'#fff'}" onclick="toggleSuspend('${u.id}',${!u.suspenso})">${u.suspenso?'Activar':'Suspender'}</button>
+    </div></td>
   </tr>`).join('');
 }
 
 async function verUser(id) {
   openModal('modalUser');
   document.getElementById('modalUserContent').innerHTML = '<div class="loading"><div class="spinner"></div></div>';
-  const d = await api('user_detalhe', 'GET', null, `&user_id=${id}`);
-  if (!d || !d.user) { document.getElementById('modalUserContent').innerHTML = '<div class="empty">Erro ao carregar.</div>'; return; }
+  const d = await api('user_detalhe','GET',null,`&user_id=${id}`);
+  if (!d?.user) { document.getElementById('modalUserContent').innerHTML='<div class="empty">Erro ao carregar.</div>'; return; }
   const u = d.user;
   const fmt = n => Number(n||0).toLocaleString('pt-AO');
   document.getElementById('modalUserTitle').textContent = u.nome;
   document.getElementById('modalUserContent').innerHTML = `
     <div class="detail-grid">
       <div class="detail-item"><div class="detail-key">Email</div><div class="detail-val">${esc(u.email||'—')}</div></div>
-      <div class="detail-item"><div class="detail-key">Telefone</div><div class="detail-val">${esc(u.telefone||'—')}</div></div>
-      <div class="detail-item"><div class="detail-key">Saldo</div><div class="detail-val" style="color:var(--gold)">${fmt(u.saldo)} Kz</div></div>
+      <div class="detail-item"><div class="detail-key">Telefone</div><div class="detail-val" style="font-family:var(--font-mono)">${esc(u.telefone||'—')}</div></div>
+      <div class="detail-item"><div class="detail-key">Saldo</div><div class="detail-val" style="color:var(--gold);font-family:var(--font-mono)">${fmt(u.saldo)} Kz</div></div>
       <div class="detail-item"><div class="detail-key">Nível</div><div class="detail-val">${u.nivel||'bronze'}</div></div>
       <div class="detail-item"><div class="detail-key">Estado</div><div class="detail-val">${u.suspenso?'🔴 Suspenso':'🟢 Activo'}</div></div>
-      <div class="detail-item"><div class="detail-key">KYC</div><div class="detail-val">${u.kyc_estado||'nao_verificado'}</div></div>
-      <div class="detail-item"><div class="detail-key">Registo</div><div class="detail-val">${fmtDate(u.criado_em)}</div></div>
-      <div class="detail-item"><div class="detail-key">Último Login</div><div class="detail-val">${fmtDate(u.ultimo_login)}</div></div>
+      <div class="detail-item"><div class="detail-key">KYC</div><div class="detail-val">${u.kyc_estado||'nenhum'}</div></div>
+      <div class="detail-item"><div class="detail-key">Registo</div><div class="detail-val" style="font-size:12px">${fmtDate(u.criado_em)}</div></div>
+      <div class="detail-item"><div class="detail-key">Último Login</div><div class="detail-val" style="font-size:12px">${fmtDate(u.ultimo_login)}</div></div>
     </div>
-    <div style="font-size:12px;font-weight:700;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px">Últimas Apostas</div>
+    <div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px">Últimas Apostas</div>
     <table style="margin-bottom:16px">
       <thead><tr><th>Jogo</th><th>Valor</th><th>Resultado</th><th>Data</th></tr></thead>
       <tbody>${(d.apostas||[]).slice(0,5).map(a=>`<tr>
-        <td style="font-size:12px">${esc(a.jogo||'—')}</td>
-        <td>${Number(a.valor_apostado||0).toLocaleString('pt-AO')} Kz</td>
+        <td style="font-size:11px">${esc(a.jogo||'—')}</td>
+        <td style="font-family:var(--font-mono)">${Number(a.valor_apostado||0).toLocaleString('pt-AO')} Kz</td>
         <td><span class="pill ${a.resultado==='ganhou'?'pill-green':a.resultado==='perdeu'?'pill-red':'pill-yellow'}">${a.resultado}</span></td>
-        <td style="font-size:11px;color:var(--muted)">${fmtDate(a.criado_em)}</td>
-      </tr>`).join('')||'<tr><td colspan="4" style="text-align:center;color:var(--muted)">Sem apostas</td></tr>'}</tbody>
+        <td style="font-size:10px;color:var(--muted)">${fmtDate(a.criado_em)}</td>
+      </tr>`).join('')||'<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:16px">Sem apostas</td></tr>'}</tbody>
     </table>
-    <div style="font-size:12px;font-weight:700;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px">Últimos Depósitos</div>
+    <div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px">Últimos Depósitos</div>
     <table>
       <thead><tr><th>Ref</th><th>Valor</th><th>Método</th><th>Estado</th></tr></thead>
       <tbody>${(d.depositos||[]).slice(0,5).map(dep=>`<tr>
-        <td style="font-family:monospace;font-size:11px">${dep.referencia||'—'}</td>
-        <td>${Number(dep.valor||0).toLocaleString('pt-AO')} Kz</td>
+        <td style="font-family:var(--font-mono);font-size:10px">${dep.referencia||'—'}</td>
+        <td style="font-family:var(--font-mono)">${Number(dep.valor||0).toLocaleString('pt-AO')} Kz</td>
         <td>${esc(dep.metodo||'—')}</td>
         <td><span class="pill ${dep.estado==='aprovado'?'pill-green':dep.estado==='rejeitado'?'pill-red':'pill-yellow'}">${dep.estado}</span></td>
-      </tr>`).join('')||'<tr><td colspan="4" style="text-align:center;color:var(--muted)">Sem depósitos</td></tr>'}</tbody>
+      </tr>`).join('')||'<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:16px">Sem depósitos</td></tr>'}</tbody>
     </table>`;
 }
 
@@ -718,31 +970,119 @@ function abrirSaldo(id, nome) {
 async function confirmarSaldo() {
   const valor = parseFloat(document.getElementById('modalSaldoValor').value);
   const motivo = document.getElementById('modalSaldoMotivo').value;
-  if (isNaN(valor)) { toast('Valor inválido', 'error'); return; }
-  const r = await api('ajustar_saldo', 'PATCH', { user_id: modalSaldoUserId, valor, motivo });
-  if (r?.ok) { toast(`Saldo actualizado: ${Number(r.saldo_novo).toLocaleString('pt-AO')} Kz`, 'success'); closeModal('modalSaldo'); loadUtilizadores(); }
-  else toast(r?.error || 'Erro', 'error');
+  if (isNaN(valor)) { toast('Valor inválido','error'); return; }
+  const r = await api('ajustar_saldo','PATCH',{user_id:modalSaldoUserId,valor,motivo});
+  if (r?.ok) { toast(`✅ Saldo actualizado: ${Number(r.saldo_novo).toLocaleString('pt-AO')} Kz`,'success'); closeModal('modalSaldo'); loadUtilizadores(); }
+  else toast(r?.error||'Erro','error');
 }
 
 async function toggleSuspend(id, suspend) {
-  if (!confirm(suspend ? 'Suspender esta conta?' : 'Activar esta conta?')) return;
-  const r = await api('toggle_suspend', 'PATCH', { user_id: id, suspenso: suspend });
-  if (r?.ok) { toast(suspend ? 'Conta suspensa.' : 'Conta activada.', suspend ? 'error' : 'success'); loadUtilizadores(); }
-  else toast(r?.error || 'Erro', 'error');
+  if (!confirm(suspend?'Suspender esta conta?':'Activar esta conta?')) return;
+  const r = await api('toggle_suspend','PATCH',{user_id:id,suspenso:suspend});
+  if (r?.ok) { toast(suspend?'Conta suspensa.':'Conta activada.',suspend?'error':'success'); loadUtilizadores(); }
+  else toast(r?.error||'Erro','error');
+}
+
+// ── KYC ───────────────────────────────────────────────────────
+async function loadKyc() {
+  const data = await api('kyc_pendentes');
+  const tb = document.getElementById('kycTable');
+  if (!Array.isArray(data)||!data.length) { tb.innerHTML='<tr><td colspan="6"><div class="empty"><div class="empty-icon">✅</div><div class="empty-text">Sem KYC pendentes</div></div></td></tr>'; return; }
+  document.getElementById('badgeKyc').textContent = data.length;
+  document.getElementById('badgeKyc').style.display = data.length?'':'none';
+  tb.innerHTML = data.map(k => `<tr>
+    <td>${esc(k.user_nome||k.user_id?.slice(0,8)||'—')}</td>
+    <td>${esc(k.tipo_documento||'—')}</td>
+    <td style="font-family:var(--font-mono)">${esc(k.numero_documento||'—')}</td>
+    <td style="font-size:11px;color:var(--muted)">${fmtDate(k.submetido_em)}</td>
+    <td><span class="pill pill-yellow">${k.estado}</span></td>
+    <td><div class="act-btns">
+      <button class="act-btn" style="background:var(--green);color:#000" onclick="aprovarKyc('${k.id}')">✅ Aprovar</button>
+      <button class="act-btn" style="background:var(--red);color:#fff" onclick="rejeitarKyc('${k.id}')">❌ Rejeitar</button>
+    </div></td>
+  </tr>`).join('');
+}
+
+async function aprovarKyc(id) {
+  const r = await api('kyc_aprovar','POST',{kyc_id:id});
+  if (r?.ok) { toast('✅ KYC aprovado!','success'); loadKyc(); }
+  else toast(r?.error||'Erro','error');
+}
+async function rejeitarKyc(id) {
+  const r = await api('kyc_rejeitar','POST',{kyc_id:id});
+  if (r?.ok) { toast('KYC rejeitado.','info'); loadKyc(); }
+  else toast(r?.error||'Erro','error');
+}
+
+// ── BÓNUS ─────────────────────────────────────────────────────
+async function loadBonus() {
+  const data = await api('bonus_todos');
+  const tb = document.getElementById('bonusTable');
+  if (!Array.isArray(data)||!data.length) { tb.innerHTML='<tr><td colspan="7"><div class="empty"><div class="empty-icon">🎁</div><div class="empty-text">Sem bónus</div></div></td></tr>'; return; }
+  tb.innerHTML = data.map(b => {
+    const prog = b.rollover ? Math.min(100, ((b.rollover_completado||0)/(b.valor||1)/(b.rollover||1))*100) : 100;
+    return `<tr>
+      <td>${esc(b.user_nome||b.user_id?.slice(0,8)||'—')}</td>
+      <td><span class="pill pill-purple">${esc(b.tipo||'—')}</span></td>
+      <td style="color:var(--gold);font-family:var(--font-mono);font-weight:700">${Number(b.valor||0).toLocaleString('pt-AO')} Kz</td>
+      <td style="font-size:12px">${b.rollover||1}x</td>
+      <td><div style="background:var(--bg3);border-radius:4px;height:6px;width:80px;overflow:hidden;"><div style="height:100%;background:var(--gold);width:${prog}%;border-radius:4px;"></div></div><span style="font-size:10px;color:var(--muted)">${prog.toFixed(0)}%</span></td>
+      <td><span class="pill ${b.estado==='activo'?'pill-green':b.estado==='completado'?'pill-blue':'pill-grey'}">${b.estado}</span></td>
+      <td style="font-size:11px;color:var(--muted)">${b.expira_em?fmtDate(b.expira_em):'—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+async function criarBonus() {
+  const user_id = document.getElementById('bonusUserId').value.trim();
+  const tipo = document.getElementById('bonusTipo').value;
+  const valor = parseFloat(document.getElementById('bonusValor').value);
+  const rollover = parseInt(document.getElementById('bonusRollover').value)||5;
+  if (!user_id||!valor) { toast('Preenche todos os campos.','error'); return; }
+  const r = await api('criar_bonus','POST',{user_id,tipo,valor,rollover});
+  if (r?.ok) { toast('✅ Bónus criado!','success'); closeModal('modalCriarBonus'); loadBonus(); }
+  else toast(r?.error||'Erro','error');
 }
 
 // ── LOGS ──────────────────────────────────────────────────────
 async function loadLogs() {
   const data = await api('logs');
-  if (!data) return;
   const tb = document.getElementById('logsTable');
-  if (!data.length) { tb.innerHTML = '<tr><td colspan="4"><div class="empty">Sem logs</div></td></tr>'; return; }
+  if (!data?.length) { tb.innerHTML='<tr><td colspan="4"><div class="empty">Sem logs</div></td></tr>'; return; }
   tb.innerHTML = data.map(l => `<tr>
-    <td style="font-size:12px;color:var(--muted)">${fmtDate(l.criado_em)}</td>
+    <td style="font-size:11px;color:var(--muted);font-family:var(--font-mono)">${fmtDate(l.criado_em)}</td>
     <td style="font-size:12px">${esc(l.admin||'—')}</td>
-    <td style="font-weight:600">${esc(l.accao||'—')}</td>
+    <td style="font-weight:700">${esc(l.accao||'—')}</td>
     <td style="font-size:12px;color:var(--muted)">${esc(l.detalhe||'—')}</td>
   </tr>`).join('');
+}
+
+// ── RELATÓRIOS ────────────────────────────────────────────────
+async function loadRelatorios() {
+  const dash = await api('dashboard');
+  if (!dash) return;
+  const fmt = n => Number(n||0).toLocaleString('pt-AO');
+  const cards = [
+    { icon:'💰', label:'Volume Total Apostado', value: fmt(dash.volume_apostado)+' Kz', cls:'gold', cardCls:'gold-card' },
+    { icon:'📈', label:'GGR Total', value: fmt(dash.ggr)+' Kz', cls:'green', cardCls:'green-card' },
+    { icon:'🏦', label:'Depósitos Totais', value: fmt(dash.depositos_total)+' Kz', cls:'', cardCls:'blue-card' },
+    { icon:'📊', label:'Hold %', value: (dash.hold||0)+'%', cls:'', cardCls:'' },
+  ];
+  document.getElementById('relStats').innerHTML = cards.map(c => `
+    <div class="stat-card ${c.cardCls}">
+      <div class="stat-icon">${c.icon}</div>
+      <div class="stat-label">${c.label}</div>
+      <div class="stat-value ${c.cls}">${c.value}</div>
+    </div>`).join('');
+  document.getElementById('relContent').innerHTML = `
+    <div class="metric-row"><span class="metric-label">Total Utilizadores</span><span class="metric-value">${dash.total_users||0}</span></div>
+    <div class="metric-row"><span class="metric-label">Saldo em Plataforma</span><span class="metric-value" style="color:var(--gold)">${fmt(dash.saldo_total)} Kz</span></div>
+    <div class="metric-row"><span class="metric-label">Volume Apostado</span><span class="metric-value">${fmt(dash.volume_apostado)} Kz</span></div>
+    <div class="metric-row"><span class="metric-label">GGR (Gross Gaming Revenue)</span><span class="metric-value" style="color:var(--green)">${fmt(dash.ggr)} Kz</span></div>
+    <div class="metric-row"><span class="metric-label">Hold %</span><span class="metric-value">${dash.hold||0}%</span></div>
+    <div class="metric-row"><span class="metric-label">Depósitos Totais</span><span class="metric-value">${fmt(dash.depositos_total)} Kz</span></div>
+    <div class="metric-row"><span class="metric-label">Levantamentos Pendentes</span><span class="metric-value" style="color:${dash.levantamentos_pendentes>0?'var(--red)':'var(--muted)'}">${dash.levantamentos_pendentes||0}</span></div>
+    <div class="metric-row"><span class="metric-label">Depósitos a Aprovar</span><span class="metric-value" style="color:${dash.deps_pendentes_confirmados>0?'var(--red)':'var(--muted)'}">${dash.deps_pendentes_confirmados||0}</span></div>`;
 }
 
 // ── HELPERS ───────────────────────────────────────────────────
@@ -752,12 +1092,6 @@ function fmtDate(iso) {
   try { return new Date(iso).toLocaleString('pt-PT',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'}); }
   catch { return iso; }
 }
-
-// Close modals on outside click
-document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); }));
-
-// Enter key on login
-document.addEventListener('keydown', e => { if (e.key === 'Enter' && document.getElementById('loginPage').style.display !== 'none') doLogin(); });
 </script>
 </body>
 </html>
