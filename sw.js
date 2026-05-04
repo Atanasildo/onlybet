@@ -1,5 +1,5 @@
 // OnlyBet Service Worker v1
-const CACHE = 'onlybet-v1';
+const CACHE = 'onlybet-v2';  // ← muda aqui
 const STATIC = ['/', '/index.html', '/manifest.json'];
 
 self.addEventListener('install', e => {
